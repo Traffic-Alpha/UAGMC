@@ -2,10 +2,9 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:14:21
-LastEditTime: 2023-12-08 23:23:04
-LastEditors:  
+LastEditTime: 2023-12-10 21:19:28
+LastEditors: pangay 1623253042@qq.com
 '''
-import random
 
 from loguru import logger
 from typing import List, Tuple
@@ -16,7 +15,8 @@ class UAM_Lane(object): #空中通行的航线
     """
     描述UAM 航线数据，包括 起始点，终点， 速度和客流量
     """
-    def __init__(self, id:int =0, origin_position:List[int] =[30,30], destination_position:List[int] =[70,70],
+    def __init__(self, id:int =0, origin_position:List[int] =[30,30], 
+                 destination_position:List[int] =[70,70],
                 speed:int =10, volume:int =2,
                 ) -> None: #初始化
         
@@ -32,6 +32,7 @@ class UAM_Lane(object): #空中通行的航线
         self.wait_person += 1
 
     def get_wait_time(self):
+        
         return int(self.wait_person/self.volume)
     
     def update_state(self):
@@ -40,5 +41,7 @@ class UAM_Lane(object): #空中通行的航线
 
 
     def get_state(self):
-        print(f'{self.id} | wait person {self.wait_person} | origin position {self.origin_position} | destination position {self.destination_position}')
-        return()
+        #print(f'{self.id} | wait person {self.wait_person} | origin position {self.origin_position} | destination position {self.destination_position}')
+        return(self.origin_position, 
+               self.destination_position, 
+               self.wait_person) #返回 起点 终点和现在等待的人数

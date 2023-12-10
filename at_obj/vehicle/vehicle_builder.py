@@ -2,22 +2,23 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:33:12
-LastEditTime: 2023-12-08 22:47:12
-LastEditors:  
+LastEditTime: 2023-12-10 21:51:00
+LastEditors: pangay 1623253042@qq.com
 '''
+import random
 
 from loguru import logger
 from typing import Dict, Any
 from .vehicle import Vehicle
-
+from at_obj.map.map import Map
 
 class VehicleBuilder(object):
 
-
-    def __init__(self, vehicle_num:int = 10) -> None:
+    def __init__(self, vehicle_num:int = 10, ) -> None:
         
+        self.map = Map()
         self.vehicles:Dict[str,Vehicle] = {}
-        self.vehicle_num = vehicle_num
+        self.vehicle_num = vehicle_num #环境中车的数量
     
         for _ in range(0,self.vehicle_num): #初始化出租车对列
             vehicle_id = str(_) 
@@ -25,8 +26,13 @@ class VehicleBuilder(object):
             self.vehicles[vehicle_id] = vehicle_info
 
     def create_objects(self, vehicle_id:str)->None:
+        origin_position = [
+                     random.randint(0, 0.3*self.map.map_len),
+                     random.randint(0, 0.3*self.map.map_len)]
+        vehicle_info = Vehicle(vehicle_id ,
+                               origin_position=origin_position 
+                        ).create_object() #创建一个对象
         
-        vehicle_info = Vehicle(vehicle_id).create_object() #创建一个对象
         self.vehicles[vehicle_id]=vehicle_info
     #可以假设每次新出现的行人需求都会被满足
 
@@ -58,5 +64,13 @@ class VehicleBuilder(object):
 
         # 补充车辆
         for _ in range(0,del_num):  #每次仿真新增需求点
-            vehicle_id = self.vehicle_num+1
+            
+            vehicle_id = self.vehicle_num
+            self.vehicle_num = self.vehicle_num+1
             self.create_objects(str(vehicle_id))
+            
+    def get_state(self):
+        for _ in  self.vehicles:
+            print(self.vehicles[_].get_state())
+        
+        return self.vehicles   
