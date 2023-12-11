@@ -1,11 +1,10 @@
 '''
 Author: PangAY
 Date: 2023-12-08 20:51:05
-LastEditTime: 2023-12-11 20:50:04
+LastEditTime: 2023-12-11 21:11:11
 LastEditors: pangay 1623253042@qq.com
 '''
 
-from typing import Tuple
 
 class PersonInfo(object):
     """
