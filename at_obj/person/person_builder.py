@@ -1,8 +1,7 @@
-'''
-Description: 
+''' 
 Author: PangAY
 Date: 2023-12-08 21:31:06
-LastEditTime: 2023-12-10 21:48:21
+LastEditTime: 2023-12-11 20:43:58
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
@@ -13,8 +12,8 @@ from .person import PersonInfo
 from at_obj.map.map import Map
 
 class PersonBuilder(object):
-    def __init__(self, person_num:int =4) -> None:
-        self.map = Map() #地图信息
+    def __init__(self, person_num:int =4, map: Any = Map()) -> None:
+        self.map = map
         self.person:Dict[str,PersonInfo] = {}
         self.time=0
         self.person_num=person_num
@@ -31,12 +30,10 @@ class PersonBuilder(object):
             self.time,
             origin_position=origin_position,
             destination_position=destination_position,
-        ).create_object(
-            person_id, self.time) #创建一个对象
+        ).create_object(person_id, self.time) 
         
         self.person[person_id]=person_info
         
-    #可以假设每次新出现的行人需求都会被满足
     def __delete_person(self, person_id: str) -> None:
         
         """删除指定 id 的行人
@@ -45,26 +42,26 @@ class PersonBuilder(object):
         """
         if person_id in self.person:
             logger.info(f"SIM: Delete Person with ID {person_id}.")
-            del self.person[person_id] # 匹配成功后自动 unsubscribe
+            del self.person[person_id] 
         else:
             logger.warning(f"SIM: Person with ID {person_id} does not exist.")
             
-    def update_objects_state(self, time) -> None:
+    def update_objects_state(self, time: int) -> None:
         
-        """更新场景中所有行人信息, 包含三个部分:
-        1. 对于匹配成功的行人，将其从 self.people 中删除；
-        2. 对于新进入环境的行人，将其添加在 self.people；
         """
-        # 删除离开环境的行人
+        Update all passenger information in the scene, including two parts:
+        1. For successfully matched pedestrians, delete them from self.people;
+        2. For new passenger entering the environment, add them in self.people;
+        """
+        # Delete successfully matched passengers
         self.time = time
         for person_id in list(self.person.keys()):
             if self.person[person_id].state == 'drive':
-                 #匹配好的行人的状态是 drive 在此问题中每次新出现的行人都被匹配
                 self.__delete_person(person_id)
 
-        # 更新已存在的行人信息
-        for _ in range(0,self.person_num):  #每次仿真新增需求点
-            person_id =  str(self.time) + '_' + str(_)
+        #  Updated passenger information
+        for num in range(0,self.person_num):  
+            person_id =  str(self.time) + '_' + str(num)
             self.create_objects(person_id)
     
     def get_state(self):
@@ -72,6 +69,6 @@ class PersonBuilder(object):
             print(self.person[_].get_state())
         return self.person
     
-    def __call__(self, time) -> Any:
+    def __call__(self, time: int) -> Any:
 
         self.time = time

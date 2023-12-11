@@ -1,8 +1,7 @@
 '''
-Description: 
 Author: PangAY
 Date: 2023-12-08 21:33:12
-LastEditTime: 2023-12-10 21:51:00
+LastEditTime: 2023-12-11 21:04:27
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
@@ -14,14 +13,16 @@ from at_obj.map.map import Map
 
 class VehicleBuilder(object):
 
-    def __init__(self, vehicle_num:int = 10, ) -> None:
+    def __init__(self, vehicle_num: int = 10, ) -> None:
         
         self.map = Map()
         self.vehicles:Dict[str,Vehicle] = {}
-        self.vehicle_num = vehicle_num #环境中车的数量
+        #
+        self.vehicle_num = vehicle_num 
+
     
-        for _ in range(0,self.vehicle_num): #初始化出租车对列
-            vehicle_id = str(_) 
+        for veh in range(0,self.vehicle_num):
+            vehicle_id = str(veh) 
             vehicle_info = Vehicle(vehicle_id).create_object()
             self.vehicles[vehicle_id] = vehicle_info
 
@@ -31,10 +32,10 @@ class VehicleBuilder(object):
                      random.randint(0, 0.3*self.map.map_len)]
         vehicle_info = Vehicle(vehicle_id ,
                                origin_position=origin_position 
-                        ).create_object() #创建一个对象
+                        ).create_object() 
         
         self.vehicles[vehicle_id]=vehicle_info
-    #可以假设每次新出现的行人需求都会被满足
+    
 
     def __delete_vehicle(self, vehicle_id: str) -> None:
         
@@ -48,23 +49,22 @@ class VehicleBuilder(object):
         else:
             logger.warning(f"SIM: Person with ID {vehicle_id} does not exist.")
             
-    def update_objects_state(self, time) -> None:
+    def update_objects_state(self, time: int) -> None:
         
-        """更新场景中所有机动车信息, 包含三个部分:
-        1. 对于匹配成功的行人，将其从 self.people 中删除；
-        2. 对于新进入环境的机动车，将其添加在 self.people；
+        """更新场景中所有机动车信息, 包含两个部分:
+        1. 对于匹配成功的车辆，将其从 self.vehicles 中删除；
+        2. 对于新进入环境的机动车，将其添加在 self.vehicles；
         """
         self.time = time
-        del_num = 0 #删除车辆数量
-        # 删除离开环境的行人
+        del_num = 0 #删除车辆数量，用于补充新车
+        # 删除离开环境的车辆
         for vehicle_id in list(self.vehicles.keys()):
             if self.vehicles[vehicle_id].state == 'drive':
                 self.__delete_vehicle(vehicle_id)
                 del_num += 1
 
         # 补充车辆
-        for _ in range(0,del_num):  #每次仿真新增需求点
-            
+        for _ in range(0,del_num):  
             vehicle_id = self.vehicle_num
             self.vehicle_num = self.vehicle_num+1
             self.create_objects(str(vehicle_id))
