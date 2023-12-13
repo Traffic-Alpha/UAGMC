@@ -1,10 +1,9 @@
 '''
 Author: PangAY
 Date: 2023-12-08 21:13:26
-LastEditTime: 2023-12-11 21:05:05
+LastEditTime: 2023-12-13 21:40:18
 LastEditors: pangay 1623253042@qq.com
 '''
-
 from typing import List, Tuple
 
 class Vehicle(object):
@@ -13,7 +12,7 @@ class Vehicle(object):
     """
     def __init__(
             self,id: str ='0', 
-            origin_position: list[int, int] =[0,0],
+            origin_position: List[int] =[0,0],
             speed: int = 2,
             ) -> None: 
         
@@ -30,8 +29,8 @@ class Vehicle(object):
         self.passenger = person_id # 
     
     def get_drive_time(self, 
-                       begin: list[int,int], 
-                       end: list[int, int], 
+                       begin: List[int] , 
+                       end: List[int], 
                        rate_ratio: float =1, 
         # congestion coefficient true vehicle speed = vehile speed * rate_ratio
                        ):

@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 21:33:12
-LastEditTime: 2023-12-11 21:04:27
+LastEditTime: 2023-12-13 21:41:04
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
@@ -26,7 +26,7 @@ class VehicleBuilder(object):
             vehicle_info = Vehicle(vehicle_id).create_object()
             self.vehicles[vehicle_id] = vehicle_info
 
-    def create_objects(self, vehicle_id:str)->None:
+    def create_objects(self, vehicle_id: str)->None:
         origin_position = [
                      random.randint(0, 0.3*self.map.map_len),
                      random.randint(0, 0.3*self.map.map_len)]
@@ -56,21 +56,21 @@ class VehicleBuilder(object):
         2. 对于新进入环境的机动车，将其添加在 self.vehicles；
         """
         self.time = time
-        del_num = 0 #删除车辆数量，用于补充新车
+        del_num = 0 # matched vehicles
         # 删除离开环境的车辆
         for vehicle_id in list(self.vehicles.keys()):
             if self.vehicles[vehicle_id].state == 'drive':
                 self.__delete_vehicle(vehicle_id)
                 del_num += 1
 
-        # 补充车辆
+        # add mew vehicles
         for _ in range(0,del_num):  
             vehicle_id = self.vehicle_num
             self.vehicle_num = self.vehicle_num+1
             self.create_objects(str(vehicle_id))
             
     def get_state(self):
-        for _ in  self.vehicles:
-            print(self.vehicles[_].get_state())
+        for vehicle in  self.vehicles:
+            print(self.vehicles[vehicle].get_state())
         
         return self.vehicles   

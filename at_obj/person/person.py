@@ -1,19 +1,19 @@
 '''
 Author: PangAY
 Date: 2023-12-08 20:51:05
-LastEditTime: 2023-12-11 21:11:11
+LastEditTime: 2023-12-13 21:36:05
 LastEditors: pangay 1623253042@qq.com
 '''
-
+from typing import List
 
 class PersonInfo(object):
     """
     """
     def __init__(self, 
-                 id: str ='0', 
-                 time: int =0,
-                 origin_position: list[int,int] =[0,0],
-                 destination_position: list[int, int] =[0,0]
+                 id: str = '0', 
+                 time: int = 0,
+                 origin_position: List[int] =[0,0],
+                 destination_position: List[int] =[0,0]
             )-> None: 
         
         self.id = id

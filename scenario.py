@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 17:01:38
-LastEditTime: 2023-12-11 21:07:34
+LastEditTime: 2023-12-13 21:40:38
 LastEditors: pangay 1623253042@qq.com
 '''
 from at_obj.person.person_builder import PersonBuilder
@@ -12,7 +12,7 @@ class Scenario(object):
     def __init__(self) -> None:
         
         self.time = 0 # simulate time
-        self.persons = PersonBuilder(person_num=4) # passenger list
+        self.persons = PersonBuilder(person_num = 4) # passenger list
         self.vehicles = VehicleBuilder() # vehicles builder 
 
         self.uam=UAM_Lane()
@@ -29,10 +29,6 @@ class Scenario(object):
         state = {obj_id: self.item[obj_id].get_state() for obj_id in self.item}
         return state
     def step(self, action):
-        """
-
-
-        """
         self.time+=1
         # get passenger list
         person_list=[id for id  in self.persons.person] 

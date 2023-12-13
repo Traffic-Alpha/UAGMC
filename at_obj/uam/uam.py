@@ -2,7 +2,7 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:14:21
-LastEditTime: 2023-12-11 21:02:28
+LastEditTime: 2023-12-13 21:37:08
 LastEditors: pangay 1623253042@qq.com
 '''
 import math
@@ -34,7 +34,7 @@ class UAM_Lane(object):
         self.person_list = []
         self.time = 0
     
-    def add_new_passenger(self, person):
+    def add_new_passenger(self, person: str):
         self.person_list.append(person)
         self.wait_person += 1
 
@@ -42,7 +42,7 @@ class UAM_Lane(object):
         
         return int(self.wait_person/self.volume)
     
-    def cal_distance(self, p1, p2):
+    def cal_distance(self, p1: List[int], p2: List[int]):
         return math.sqrt(
             math.pow((p2[0] - p1[0]), 2) + 
             math.pow((p2[1] - p1[1]), 2)
@@ -53,7 +53,7 @@ class UAM_Lane(object):
             self.origin_position, self.destination_position)
         return int(distance/self.speed)
 
-    def update_objects_state(self, time):
+    def update_objects_state(self, time: int):
 
         self.time = time
         self.wait_person=self.wait_person-self.volume 

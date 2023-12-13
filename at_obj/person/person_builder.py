@@ -1,13 +1,14 @@
 ''' 
 Author: PangAY
 Date: 2023-12-08 21:31:06
-LastEditTime: 2023-12-11 20:43:58
+LastEditTime: 2023-12-13 21:35:54
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
 
 from loguru import logger
-from typing import Dict, Any
+from typing import Dict, Any 
+
 from .person import PersonInfo
 from at_obj.map.map import Map
 
