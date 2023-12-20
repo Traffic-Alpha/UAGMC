@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 21:13:26
-LastEditTime: 2023-12-15 12:43:36
+LastEditTime: 2023-12-20 17:29:14
 LastEditors: pangay 1623253042@qq.com
 '''
 from typing import List, Tuple
@@ -31,12 +31,12 @@ class Vehicle(object):
     def get_drive_time(self, 
                        begin: List[int] , 
                        end: List[int], 
-                       rate_ratio: float =1, #vehicle speed = vehile speed * rate_ratio
+                       rate_ratio: float =1, # vehicle speed = vehile speed * rate_ratio
                        ):
         travel_time=(
             abs(begin[0]-end[0]) 
             + abs(begin[1]-end[1])
-            )/(self.speed*rate_ratio)
+            )/(self.speed*rate_ratio) # manhattan distance
         return travel_time
     
 

@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 17:01:38
-LastEditTime: 2023-12-13 21:40:38
+LastEditTime: 2023-12-20 17:42:24
 LastEditors: pangay 1623253042@qq.com
 '''
 from at_obj.person.person_builder import PersonBuilder
@@ -42,17 +42,23 @@ class Scenario(object):
         # Update states and calculate reward
         for person in person_list:
             # match
-            self.vehicles.vehicles[vehicle_list[action[person][0]]].update_state(person) 
+            self.vehicles.vehicles[vehicle_list[action[person][0]]].update_state(person)
             self.persons.person[person].update_state(
                 vehicle_list[action[person][0]]) 
             # The time it takes for a matching taxi to pick up passenger
             reward_match_time = reward_match_time + self.vehicles.vehicles[
                 vehicle_list[action[person][0]]].get_drive_time(
                 self.vehicles.vehicles[vehicle_list[action[person][0]]].origin_position,
-                self.persons.person[person].origin_position) 
+                self.persons.person[person].origin_position)
+            arrive_uam_time = self.vehicles.vehicles[
+                vehicle_list[action[person][0]]].get_drive_time(
+                self.uam.origin_position,
+                self.persons.person[person].origin_position
+                )
+            print('arrive_uam_time',arrive_uam_time)
             # passenger choose UAM or ground
             if action[person][1] == 'UAM':
-                self.uam.add_new_passenger(self.persons.person[person])
+                self.uam.add_new_passenger(self.persons.person[person], int(arrive_uam_time))
                 # Queuing time
                 wait_time = self.uam.get_wait_time()
                 # Flying time
@@ -88,7 +94,7 @@ if __name__ == '__main__':
     
     state = car1.reset()
 
-    for _ in range(0,10):
+    for _ in range(0,100):
         action = {}
         i = 0
         for people in car1.state['people']:

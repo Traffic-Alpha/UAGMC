@@ -2,13 +2,13 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:14:21
-LastEditTime: 2023-12-13 21:37:08
+LastEditTime: 2023-12-20 17:48:18
 LastEditors: pangay 1623253042@qq.com
 '''
 import math
+import numpy as np 
 
-from loguru import logger
-from typing import List, Tuple
+from typing import Dict, List
 
 from at_obj.map.map import Map
 
@@ -32,11 +32,14 @@ class UAM_Lane(object):
         # number of waiting people
         self.wait_person = 0 
         self.person_list = []
+        self.wait_list = np.zeros(1000)
+        # The number of people arriving at time t
         self.time = 0
     
-    def add_new_passenger(self, person: str):
+    def add_new_passenger(self, person: str, arrive_time: int):
+        
         self.person_list.append(person)
-        self.wait_person += 1
+        self.wait_list[arrive_time + self.time] += 1
 
     def get_wait_time(self):
         
@@ -55,9 +58,10 @@ class UAM_Lane(object):
 
     def update_objects_state(self, time: int):
 
+        self.wait_person = self.wait_person + self.wait_list[time]
         self.time = time
-        self.wait_person=self.wait_person-self.volume 
-        self.wait_person=max(0,self.wait_person) #
+        self.wait_person = self.wait_person - self.volume 
+        self.wait_person = max(0,self.wait_person)
 
     def get_state(self):
 
