@@ -2,7 +2,7 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:14:21
-LastEditTime: 2023-12-20 17:48:18
+LastEditTime: 2023-12-20 20:53:43
 LastEditors: pangay 1623253042@qq.com
 '''
 import math
@@ -32,13 +32,16 @@ class UAM_Lane(object):
         # number of waiting people
         self.wait_person = 0 
         self.person_list = []
-        self.wait_list = np.zeros(1000)
+        self.wait_list = np.zeros(10) # 通过copy 
         # The number of people arriving at time t
         self.time = 0
     
     def add_new_passenger(self, person: str, arrive_time: int):
         
         self.person_list.append(person)
+        while (arrive_time + self.time) >= self.wait_list.shape[0]: 
+              self.wait_list = np.append(self.wait_list, [0], axis=0)
+
         self.wait_list[arrive_time + self.time] += 1
 
     def get_wait_time(self):
