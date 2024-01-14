@@ -1,14 +1,26 @@
 '''
 Author: PangAY
 Date: 2023-12-08 17:01:38
-LastEditTime: 2023-12-20 17:42:24
+LastEditTime: 2024-01-14 22:36:48
 LastEditors: pangay 1623253042@qq.com
 '''
+import sys
+from pathlib import Path
+
+parent_directory = Path(__file__).resolve().parent.parent
+if str(parent_directory) not in sys.path:
+    sys.path.insert(0, str(parent_directory))
+
+import gym
+from gym import spaces
+import pygame
+import numpy as np
+  
 from at_obj.person.person_builder import PersonBuilder
 from at_obj.vehicle.vehicle_builder import VehicleBuilder
 from at_obj.uam.uam import UAM_Lane
 
-class Scenario(object):
+class Scenario(gym.Env):
     def __init__(self) -> None:
         
         self.time = 0 # simulate time
@@ -22,12 +34,22 @@ class Scenario(object):
             'UAM': self.uam,
         }
         self.state = {obj_id: self.item[obj_id].get_state() for obj_id in self.item}
+    def _get_obs(self):
+
+
+        return {"agent": self._agent_location}
+    
+    def _get_info(self, state):
+
+        return state
     
     def reset(self):
         self.persons.update_objects_state(self.time)
         self.vehicles.update_objects_state(self.time)
         state = {obj_id: self.item[obj_id].get_state() for obj_id in self.item}
+        #info = self._get_info()
         return state
+    
     def step(self, action):
         self.time+=1
         # get passenger list
@@ -36,7 +58,6 @@ class Scenario(object):
         reward={}
         # Time consuming for matching passengers and vehicles
         reward_match_time = 0 
-        #
         reward_uam_time = 0
         reward_drive_time = 0
         # Update states and calculate reward
@@ -55,7 +76,6 @@ class Scenario(object):
                 self.uam.origin_position,
                 self.persons.person[person].origin_position
                 )
-            print('arrive_uam_time',arrive_uam_time)
             # passenger choose UAM or ground
             if action[person][1] == 'UAM':
                 self.uam.add_new_passenger(self.persons.person[person], int(arrive_uam_time))
@@ -80,12 +100,14 @@ class Scenario(object):
         reward['reward_match_time'] = reward_match_time
         reward['reward_uam_time'] = reward_uam_time
         reward['reward_drive_time'] = reward_drive_time
+        reward = reward_uam_time + reward_drive_time
         state = {obj_id: self.item[obj_id].get_state() for obj_id in self.item} #get state
         self.uam.update_objects_state(self.time)
         self.vehicles.update_objects_state(self.time)
         self.persons.update_objects_state(self.time)
-        
-        return state, reward
+        info = self._get_info(state = state)
+        terminated = False
+        return state, reward, terminated, False, info
 
 if __name__ == '__main__':
 
@@ -93,16 +115,15 @@ if __name__ == '__main__':
     car1 = Scenario()
     
     state = car1.reset()
-
-    for _ in range(0,100):
+    time = 100
+    for _ in range(time): 
         action = {}
         i = 0
         for people in car1.state['people']:
             #[vehicle_id, if choose UAM] it can chouse 'UAM' or 'ground'
             action[people] = [i,'UAM'] 
             i+=1 
-        print('ACTION',action)
-        state, reward = car1.step(action)
+        state, reward, terminated, T, info = car1.step(action)
         print('state',state)
         print('reward',reward)
 
