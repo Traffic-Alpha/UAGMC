@@ -2,7 +2,7 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:14:21
-LastEditTime: 2023-12-20 20:53:43
+LastEditTime: 2024-01-16 20:19:38
 LastEditors: pangay 1623253042@qq.com
 '''
 import math
@@ -18,7 +18,7 @@ class UAM_Lane(object):
     """
     def __init__(self, 
                  id: int = 0, 
-                 speed: int = 10, 
+                 speed: int = 6, 
                  volume: int = 2,
                 ) -> None: #初始化
         # map information
@@ -32,7 +32,7 @@ class UAM_Lane(object):
         # number of waiting people
         self.wait_person = 0 
         self.person_list = []
-        self.wait_list = np.zeros(10) # 通过copy 
+        self.wait_list = np.zeros(1000) # 通过copy 
         # The number of people arriving at time t
         self.time = 0
     
@@ -41,8 +41,7 @@ class UAM_Lane(object):
         self.person_list.append(person)
         while (arrive_time + self.time) >= self.wait_list.shape[0]: 
               self.wait_list = np.append(self.wait_list, [0], axis=0)
-
-        self.wait_list[arrive_time + self.time] += 1
+        self.wait_list[arrive_time + self.time] += 1  # 预计到达的时间 
 
     def get_wait_time(self):
         
@@ -65,9 +64,13 @@ class UAM_Lane(object):
         self.time = time
         self.wait_person = self.wait_person - self.volume 
         self.wait_person = max(0,self.wait_person)
-
+    
+    def get_wait_person(self):
+        return self.wait_person
+    
     def get_state(self):
-
+        wait_time = self.get_wait_time()
+        fly_time = self.get_fly_time()
         return(self.origin_position, 
                self.destination_position, 
-               self.wait_person) 
+               self.wait_person, wait_time, fly_time) 

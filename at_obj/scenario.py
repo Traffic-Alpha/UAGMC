@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 17:01:38
-LastEditTime: 2024-01-14 22:36:48
+LastEditTime: 2024-01-16 20:35:10
 LastEditors: pangay 1623253042@qq.com
 '''
 import sys
@@ -51,15 +51,18 @@ class Scenario(gym.Env):
         return state
     
     def step(self, action):
-        self.time+=1
+        self.time += 1
         # get passenger list
         person_list=[id for id  in self.persons.person] 
         vehicle_list=[id for id in self.vehicles.vehicles]
-        reward={}
         # Time consuming for matching passengers and vehicles
         reward_match_time = 0 
-        reward_uam_time = 0
+        uam_wait_time = 0
+        uam_fly_time = 0
         reward_drive_time = 0
+        person_uam = 0
+        person_ground = 0
+        info = []
         # Update states and calculate reward
         for person in person_list:
             # match
@@ -78,12 +81,14 @@ class Scenario(gym.Env):
                 )
             # passenger choose UAM or ground
             if action[person][1] == 'UAM':
+                person_uam += 1
                 self.uam.add_new_passenger(self.persons.person[person], int(arrive_uam_time))
                 # Queuing time
                 wait_time = self.uam.get_wait_time()
                 # Flying time
                 fly_time = self.uam.get_fly_time()
-                reward_uam_time = reward_uam_time + wait_time + fly_time
+                uam_wait_time = uam_wait_time + wait_time # 此处的 uam_wait_time 是每次观测乘坐UAM的乘客的的等待数量的总和
+                uam_fly_time = uam_fly_time + fly_time
                 reward_drive_time += self.vehicles.vehicles[
                 vehicle_list[action[person][0]]].get_drive_time(
                      self.uam.destination_position,
@@ -91,39 +96,33 @@ class Scenario(gym.Env):
                      ) 
                 
             elif action[person][1] == 'ground':
+                person_ground += 1 
                 reward_drive_time += self.vehicles.vehicles[
                 vehicle_list[action[person][0]]].get_drive_time(
                      self.persons.person[person].origin_position,
                      self.persons.person[person].destination_position,
                      ) 
-    
+        reward = {}
         reward['reward_match_time'] = reward_match_time
-        reward['reward_uam_time'] = reward_uam_time
+        reward['reward_uam_time'] = uam_fly_time + uam_wait_time
         reward['reward_drive_time'] = reward_drive_time
-        reward = reward_uam_time + reward_drive_time
+        reward = uam_fly_time + uam_wait_time + reward_drive_time + reward_match_time
         state = {obj_id: self.item[obj_id].get_state() for obj_id in self.item} #get state
         self.uam.update_objects_state(self.time)
         self.vehicles.update_objects_state(self.time)
         self.persons.update_objects_state(self.time)
-        info = self._get_info(state = state)
+        wait_person = self.uam.get_wait_person()
+        info = {
+            'uam_fly_time':uam_fly_time, 
+            'uam_wait_time':uam_wait_time, 
+            'reward_drive_time':reward_drive_time,
+            'reward_match_time':reward_match_time,
+            'wait_person':wait_person,
+            'person_uam':person_uam,
+            'person_ground':person_ground,
+            }
         terminated = False
-        return state, reward, terminated, False, info
-
-if __name__ == '__main__':
-
-    # 类的实例化
-    car1 = Scenario()
-    
-    state = car1.reset()
-    time = 100
-    for _ in range(time): 
-        action = {}
-        i = 0
-        for people in car1.state['people']:
-            #[vehicle_id, if choose UAM] it can chouse 'UAM' or 'ground'
-            action[people] = [i,'UAM'] 
-            i+=1 
-        state, reward, terminated, T, info = car1.step(action)
-        print('state',state)
-        print('reward',reward)
-
+        dones = False
+        if self.time >= 100: #终止条件
+            dones = True
+        return state, reward, terminated, dones, info

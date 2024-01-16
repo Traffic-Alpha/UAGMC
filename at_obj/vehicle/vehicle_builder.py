@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 21:33:12
-LastEditTime: 2023-12-13 21:41:04
+LastEditTime: 2024-01-16 20:53:52
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
@@ -44,10 +44,10 @@ class VehicleBuilder(object):
             vehicle_id (str): vehicle_id id
         """
         if vehicle_id in self.vehicles:
-            logger.info(f"SIM: Delete Person with ID {vehicle_id}.")
+            #logger.info(f"SIM: Delete Vehicle with ID {vehicle_id}.")
             del self.vehicles[vehicle_id] # 匹配成功后自动 unsubscribe
         else:
-            logger.warning(f"SIM: Person with ID {vehicle_id} does not exist.")
+            logger.warning(f"SIM: Vehicle with ID {vehicle_id} does not exist.")
             
     def update_objects_state(self, time: int) -> None:
         
@@ -70,7 +70,8 @@ class VehicleBuilder(object):
             self.create_objects(str(vehicle_id))
             
     def get_state(self):
+        '''
         for vehicle in  self.vehicles:
             print(self.vehicles[vehicle].get_state())
-        
+        '''
         return self.vehicles   

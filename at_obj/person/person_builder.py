@@ -1,7 +1,7 @@
 ''' 
 Author: PangAY
 Date: 2023-12-08 21:31:06
-LastEditTime: 2023-12-13 21:35:54
+LastEditTime: 2024-01-16 20:54:05
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
@@ -42,7 +42,7 @@ class PersonBuilder(object):
             person_id (str): person_id id
         """
         if person_id in self.person:
-            logger.info(f"SIM: Delete Person with ID {person_id}.")
+            #logger.info(f"SIM: Delete Person with ID {person_id}.")
             del self.person[person_id] 
         else:
             logger.warning(f"SIM: Person with ID {person_id} does not exist.")
@@ -66,8 +66,7 @@ class PersonBuilder(object):
             self.create_objects(person_id)
     
     def get_state(self):
-        for _ in  self.person:
-            print(self.person[_].get_state())
+
         return self.person
     
     def __call__(self, time: int) -> Any:
