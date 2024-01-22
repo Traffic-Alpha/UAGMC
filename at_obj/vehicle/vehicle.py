@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 21:13:26
-LastEditTime: 2024-01-15 20:18:00
+LastEditTime: 2024-01-22 12:37:57
 LastEditors: pangay 1623253042@qq.com
 '''
 from typing import List, Tuple
@@ -13,7 +13,7 @@ class Vehicle(object):
     def __init__(
             self,id: str ='0', 
             origin_position: List[int] =[0,0],
-            speed: int = 2,
+            speed: int = 2, #两个格子 60 km/h
             ) -> None: 
         
         self.id = id

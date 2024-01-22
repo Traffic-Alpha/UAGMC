@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 21:33:12
-LastEditTime: 2024-01-16 20:53:52
+LastEditTime: 2024-01-17 23:37:15
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
@@ -19,7 +19,7 @@ class VehicleBuilder(object):
         self.vehicles:Dict[str,Vehicle] = {}
         #
         self.vehicle_num = vehicle_num 
-
+        self.time = 0
     
         for veh in range(0,self.vehicle_num):
             vehicle_id = str(veh) 
@@ -75,3 +75,11 @@ class VehicleBuilder(object):
             print(self.vehicles[vehicle].get_state())
         '''
         return self.vehicles   
+    
+    def init_builder(self):
+        self.time = 0
+        self.vehicles:Dict[str,Vehicle] = {}
+        for veh in range(0,self.vehicle_num):
+            vehicle_id = str(veh) 
+            vehicle_info = Vehicle(vehicle_id).create_object()
+            self.vehicles[vehicle_id] = vehicle_info

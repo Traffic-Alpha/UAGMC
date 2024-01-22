@@ -2,7 +2,7 @@
 Author: pangay 1623253042@qq.com
 Date: 2024-01-11 21:24:41
 LastEditors: pangay 1623253042@qq.com
-LastEditTime: 2024-01-16 20:45:23
+LastEditTime: 2024-01-17 22:12:42
 FilePath: /Air_Taxi_simulation/utils/make_env.py
 '''
 import sys
@@ -15,7 +15,7 @@ if str(parent_directory) not in sys.path:
 import gymnasium as gym
 
 from gym import logger, spaces
-from utils.at_wrapper import atWrapper
+from utilss.at_wrapper import atWrapper
 from stable_baselines3.common.monitor import Monitor
 from at_obj.scenario import Scenario
 def make_env(
@@ -32,5 +32,4 @@ def make_env(
     
     return _init
 
-    
 

@@ -2,11 +2,12 @@
 Description: 
 Author: PangAY
 Date: 2023-12-08 21:14:21
-LastEditTime: 2024-01-16 20:19:38
+LastEditTime: 2024-01-22 13:47:52
 LastEditors: pangay 1623253042@qq.com
 '''
 import math
 import numpy as np 
+import random
 
 from typing import Dict, List
 
@@ -18,8 +19,8 @@ class UAM_Lane(object):
     """
     def __init__(self, 
                  id: int = 0, 
-                 speed: int = 6, 
-                 volume: int = 2,
+                 speed: int = 4, # 120 km/h
+                 volume: int = 3,
                 ) -> None: #初始化
         # map information
         sim_map = Map()
@@ -29,25 +30,25 @@ class UAM_Lane(object):
         self.speed = speed 
         # number of passengers that can be transported per minute
         self.volume = volume
+        self.now_volume = 0
         # number of waiting people
         self.wait_person = 0 
         self.person_list = []
-        self.wait_list = np.zeros(1000) # 通过copy 
         # The number of people arriving at time t
+        self.total_person = 0
+        self.leave_person = 0
         self.time = 0
     
-    def add_new_passenger(self, person: str, arrive_time: int):
+    def add_new_passenger(self, person: str):
         
         self.person_list.append(person)
-        while (arrive_time + self.time) >= self.wait_list.shape[0]: 
-              self.wait_list = np.append(self.wait_list, [0], axis=0)
-        self.wait_list[arrive_time + self.time] += 1  # 预计到达的时间 
+        self.wait_person += 1
 
-    def get_wait_time(self):
+    def get_wait_time(self): #greedy 只能看到现在排队的人数
         
         return int(self.wait_person/self.volume)
-    
-    def cal_distance(self, p1: List[int], p2: List[int]):
+
+    def cal_distance(self, p1: List[int], p2: List[int]): #飞行距离
         return math.sqrt(
             math.pow((p2[0] - p1[0]), 2) + 
             math.pow((p2[1] - p1[1]), 2)
@@ -59,10 +60,10 @@ class UAM_Lane(object):
         return int(distance/self.speed)
 
     def update_objects_state(self, time: int):
-
-        self.wait_person = self.wait_person + self.wait_list[time]
-        self.time = time
-        self.wait_person = self.wait_person - self.volume 
+        
+        self.time = time 
+        self.now_volume = self.volume +  random.randint(-1,1)
+        self.wait_person = self.wait_person - self.now_volume # 加一些随机性
         self.wait_person = max(0,self.wait_person)
     
     def get_wait_person(self):
@@ -73,4 +74,11 @@ class UAM_Lane(object):
         fly_time = self.get_fly_time()
         return(self.origin_position, 
                self.destination_position, 
-               self.wait_person, wait_time, fly_time) 
+               self.wait_person, fly_time, wait_time, self.now_volume) 
+    
+    def init_builder(self):
+        self.wait_person = 0 
+        self.person_list = []
+        # The number of people arriving at time t
+        self.time = 0
+

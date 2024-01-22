@@ -1,28 +1,23 @@
 '''
-@Author: WANG Maonan
-@Author: PangAoyu
-@Date: 2023-09-08 15:48:26
-@Description: 基于 Stabe Baseline3 来控制策略选择
-+ State Design: Last step occupancy for each movement
-+ Action Design: Choose route 
-+ Reward Design: Total traval Time
-LastEditTime: 2024-01-14 19:59:51
+Author: pangay 1623253042@qq.com
+Date: 2024-01-11 20:58:46
+LastEditors: pangay 1623253042@qq.com
+LastEditTime: 2024-01-22 14:16:37
 '''
-# 加入 log 跑通RL
+    
 import os
 import torch
 from loguru import logger
 from tshub.utils.get_abs_path import get_abs_path
 from tshub.utils.init_log import set_logger
 
-from utils.make_env import make_env
-from utils.sb3_utils import VecNormalizeCallback, linear_schedule
 from benchmark.traffic_light.single_agent.utils.custom_models import CustomModel
-
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback
-from utils import scnn
+
+from utilss.sb3_utils import VecNormalizeCallback, linear_schedule
+from utilss.make_env import make_env
 
 path_convert = get_abs_path(__file__)
 logger.remove()
@@ -42,17 +37,12 @@ if __name__ == '__main__':
     # #########
     # Init Env
     # #########
-    sumo_cfg = path_convert("./TSCScenario/SumoNets/train_four_345/env/train_four_345.sumocfg")
+    
     params = {
-        'tls_id':'J1',
-        'num_seconds':3600,
-        'sumo_cfg':sumo_cfg,
-        'use_gui':False,
         'log_file':log_path,
     }
-    env = SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(5)])
+    env =SubprocVecEnv([make_env()]) 
     env = VecNormalize(env, norm_obs=False, norm_reward=True)
-
     # #########
     # Callback
     # #########
@@ -71,22 +61,21 @@ if __name__ == '__main__':
     # #########
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     policy_kwargs = dict(
-        #features_extractor_class=CustomModel,
-        features_extractor_class=scnn.SCNN,
-        features_extractor_kwargs=dict(features_dim=32),
+        features_extractor_class=CustomModel,
+        features_extractor_kwargs=dict(features_dim = 16),
     )
     model = PPO(
                 "MlpPolicy", 
                 env, 
                 #batch_size=64,
-                n_steps=5000, n_epochs=10, # 每次间隔 n_epoch 去评估一次
+                n_steps=1200, n_epochs=5, # 每次间隔 n_epoch 去评估一次
                 learning_rate=linear_schedule(5e-4),
                 verbose=True, 
                 policy_kwargs=policy_kwargs, 
                 tensorboard_log=tensorboard_path, 
                 device=device
             )
-    model.learn(total_timesteps=1e6, tb_log_name='J1', callback=callback_list)
+    model.learn(total_timesteps=7e4, callback=callback_list)
     
     # #################
     # 保存 model 和 env
