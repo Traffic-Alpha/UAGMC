@@ -34,7 +34,7 @@ class PersonBuilder(object):
         person_info = PersonInfo(
             person_id, 
             self.time,
-            origin_position=origin_position,
+            origin_position = origin_position,
             destination_position=destination_position,
         ).create_object(person_id, self.time) 
         

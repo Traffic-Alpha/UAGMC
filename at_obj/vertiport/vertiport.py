@@ -13,7 +13,7 @@ from typing import Dict, List
 
 from at_obj.map.map import Map
 
-class UAM_Lane(object): 
+class VertiportInfo(object): 
     """
     Describe UAM route data, including starting point, end point, speed and passenger flow
     """
@@ -21,12 +21,11 @@ class UAM_Lane(object):
                  id: int = 0, 
                  speed: int = 4, # 120 km/h
                  volume: int = 3,
-                ) -> None: #初始化
+                 vertiport_position: [int,int] = [0,0],
+                 ) -> None: #初始化
         # map information
-        sim_map = Map()
         self.id = id
-        self.origin_position = sim_map.vertiport_origin_position 
-        self.destination_position = sim_map.vertiport_destination_position 
+        self.vertiport_position = vertiport_position 
         self.speed = speed 
         # number of passengers that can be transported per minute
         self.volume = volume
@@ -55,30 +54,14 @@ class UAM_Lane(object):
             )
     
     def get_fly_time(self):
+        destination_position = [54, 54]
         distance = self.cal_distance(
-            self.origin_position, self.destination_position)
+            self.vertiport_position , destination_position)
         return int(distance/self.speed)
 
-    def update_objects_state(self, time: int):
-        
-        self.time = time 
-        self.now_volume = self.volume +  random.randint(-1,1)
-        self.wait_person = self.wait_person - self.now_volume # 加一些随机性
-        self.wait_person = max(0,self.wait_person)
-    
-    def get_wait_person(self):
-        return self.wait_person
     
     def get_state(self):
         wait_time = self.get_wait_time()
         fly_time = self.get_fly_time()
-        return(self.origin_position, 
-               self.destination_position, 
-               self.wait_person, fly_time, wait_time, self.now_volume) 
-    
-    def init_builder(self):
-        self.wait_person = 0 
-        self.person_list = []
-        # The number of people arriving at time t
-        self.time = 0
+        return(self.vertiport_position, self.wait_person, fly_time, wait_time, self.now_volume,0) 
 

@@ -23,16 +23,16 @@ if __name__ == '__main__':
 
     at_env_generate = make_env(time=100)
     tsc_env = at_env_generate()
-
+    
     # Check Env
     print(tsc_env.observation_space.sample())
     check_env(tsc_env)
     # Simulation with environment
-    tsc_env.reset()
+    tsc_env.reset(seed=0)
     dones = False
     rewards = 0
     while not dones:
-        action = [1,1,1,0]
+        action = [1,1,0,0] #action 对于站点的选择
         states, reward, truncated, dones, infos = tsc_env.step(action=action)
         rewards += reward
     print('rewards',rewards)

@@ -7,7 +7,8 @@ FilePath: /Air_Taxi_simulation/utils/at_wrapper.py
 '''
 import numpy as np
 import gymnasium as gym
-from gymnasium import spaces
+#from gym import spaces
+from gymnasium import spaces  #考虑不同版本
 from gymnasium.core import Env
 from gym.spaces import Box
 from collections import deque
@@ -23,7 +24,7 @@ class atWrapper(gym.Wrapper):
         # Dynamic Information
         self.state = None # 当前的 state
         self.action_space =  spaces.MultiBinary(4)
-        self.observation_space = spaces.Box(low= 0, high = 1000, shape=(7, 4),dtype = np.int64)
+        self.observation_space = spaces.Box(low= 0, high = 1000, shape=(9, 4), dtype = np.int64)
         self.past_reward = 0
         # 4 个行人的位置 起点 终点 
         # 机场的位置 两个坐标 
@@ -39,23 +40,28 @@ class atWrapper(gym.Wrapper):
               state_wrapper.append(destination[i][1])
         state_wrapper = np.array(state_wrapper)
         state_wrapper = state_wrapper.reshape(4,-1) #passenger position
-        uam_info = state['UAM']
+        uam_info_list = []
+        for i in range(0,2):
+            uam_info = state['UAM'][i].get_state()
         #静态信息
-        uam_positon = np.array([0,0,0,0])
-        uam_positon[0:2] = uam_info[0]
-        uam_positon[2:] = uam_info[1]
+            uam_positon = np.array([0,0,0,0])
+            uam_positon[0:2] = uam_info[0]
+            uam_positon[2:] = uam_info[1]
+            uam_info_list.append(uam_positon)
         #动态信息
-        uam_wait = np.array([0,0,0,0])
-        uam_wait[0] = uam_info[2] # wait person
-        uam_wait[1] = uam_info[3] # wait time
-        uam_wait[2] = uam_info[4]
-        uam_wait[3] = uam_info[5]
-        state_wrapper = np.insert(state_wrapper, 0, values=uam_positon, axis=0)
-        state_wrapper = np.insert(state_wrapper, 0, values=uam_wait, axis=0)
+            uam_wait = np.array([0,0,0,0])
+            uam_wait[0] = uam_info[2] # wait person
+            uam_wait[1] = uam_info[3] # wait time
+            uam_wait[2] = uam_info[4]
+            uam_wait[3] = uam_info[5]
+            uam_info_list.append(uam_wait)
+        uam_info_list = np.array(uam_info_list)
+        #state_wrapper = np.insert(state_wrapper, 0, values=uam_positon, axis=0
+        state_wrapper = np.vstack((state_wrapper,uam_info_list))
         state_wrapper = np.insert(state_wrapper, 0, values=info_wrapper, axis=0)
         return state_wrapper
     
-    # 机动车匹配模型
+    # 机动车匹配模型 #重新写 match 不需要提前去接，直接默认接到
     def vehicle_match(self, state):
         vehicle2person = []
         for i in state['people']: 
@@ -77,20 +83,18 @@ class atWrapper(gym.Wrapper):
                 k += 1
                 vehicle_id = temp[k]
                 count = vehicle2person.count(vehicle_id)
+        
             vehicle2person.append(vehicle_id)
 
         return vehicle2person
+    # action = 0,1
     def action_wrapper(self, action, vehicle2person):
         action_wrapper = {}
-        i = 0
+        i = 0 
         for people in self.state['people']:
             #[vehicle_id, if choose UAM] it can chouse 'UAM' or 'ground'
-            #匹配新的person_list
-            if action[i] == 0 :
-                action_wrapper[people] = [vehicle2person[i],'ground']
-            else:
-                action_wrapper[people] = [vehicle2person[i],'UAM']
-            i+= 1
+            action_wrapper[people] = [vehicle2person[i], action[i]]
+            i += 1
         return action_wrapper
     def info_wrapper(self,info_wrapper):
         temp_state = [0,0,0,0]

@@ -12,8 +12,7 @@ if str(parent_directory) not in sys.path:
     sys.path.insert(0, str(parent_directory))
 
 import gym
-from gymnasium import spaces 
-#from gym import spaces
+from gym import spaces
 import pygame
 import numpy as np
   
@@ -23,10 +22,6 @@ from at_obj.vertiport.vertiport_builder import UamBuilder
 
 class Scenario(gym.Env):
     def __init__(self) -> None:
-
-        self.action_space =  spaces.MultiBinary(4)
-        self.observation_space = spaces.Box(low= 0, high = 1000, shape=(9, 4),dtype = np.int64)
-
         self.render_mode = None
         self.time = 0 # simulate time
         self.persons = PersonBuilder(person_num = 4) # passenger list
@@ -51,11 +46,11 @@ class Scenario(gym.Env):
 
         return state
     
-    def reset(self, seed=0):
+    def reset(self):
         self.time = 0
         self.person_num = 0
         self.ground_num = 0 
-        self.UAM_num = 0  #uam 的人的数量
+        self.UAM_num = 0 
         self.total_traval_time = 0
         self.persons.__init__()
         self.vehicles.__init__()
@@ -67,52 +62,61 @@ class Scenario(gym.Env):
     def step(self, action):
         self.time += 1
         # get passenger list
-        person_list=[id for id  in self.persons.person_new] #新进来的人 决策的人
+        person_list=[id for id  in self.persons.person_new] 
         vehicle_list=[id for id in self.vehicles.vehicles]
         # Time consuming for matching passengers and vehicles
         info = []
         # Update states and calculate reward
         # 每步 更新仿真
-        #每个人都需要处理
+        reward_match_time = 0
         for person in person_list:
-            # 此问题不考虑车的匹配 # taxi 的匹配
-
-            # passenger choose lane
-            vertiport_id = action[person][1]
-            self.persons.person_new[person].method = 'UAM'
-            self.persons.person_new[person].state = 'v'  #匹配上车
-            self.persons.person_new[person].vertiport_up_position = vertiport_id # vertiport 有三个，编号为 0，1，2
-            self.persons.person_new[person].vertiport_off_position = 2 # 固定降落的 vertiport 编号为 2
+            # match
+            self.vehicles.vehicles[vehicle_list[action[person][0]]].update_state(person)
+            self.persons.person_new[person].match_vehicle(
+                 self.vehicles.vehicles[vehicle_list[action[person][0]]])#重新写 state 更新
+            # The time it takes for a matching taxi to pick up passenger
+            reward_match_time = reward_match_time + self.vehicles.vehicles[
+                vehicle_list[action[person][0]]].get_drive_time(
+                self.vehicles.vehicles[vehicle_list[action[person][0]]].origin_position,
+                self.persons.person_new[person].origin_position)
             
-            # 计算 起点到机场起飞的时间
-            self.persons.person_new[person].uam_drive_traval = self.vehicles.vehicles[  
+            # passenger choose UAM or ground
+            if action[person][1] == 'UAM':
+                self.UAM_num += 1
+                self.persons.person_new[person].method = 'UAM'
+                self.persons.person_new[person].uam_drive_traval = self.vehicles.vehicles[
                 vehicle_list[action[person][0]]].get_drive_time(
-                self.uam.vertiport_list[self.persons.person_new[person].vertiport_up_position].vertiport_position,
-                self.persons.person_new[person].origin_position,
+                self.uam.origin_position,
+                self.persons.person_new[person].origin_position
                 )
-
-            #计算 降落点到终点的时间
-            self.persons.person_new[person].destination_drive_traval = self.vehicles.vehicles[
+                self.persons.person_new[person].destination_drive_traval = self.vehicles.vehicles[
                 vehicle_list[action[person][0]]].get_drive_time(
-                self.uam.vertiport_list[self.persons.person_new[person].vertiport_off_position].vertiport_position, #降落机场的位置
+                self.uam.destination_position,
                 self.persons.person_new[person].destination_position
+                )
+            elif action[person][1] == 'ground':
+                self.ground_num += 1
+                self.persons.person_new[person].method = 'ground'
+                self.persons.person_new[person].ground_drive_traval = self.vehicles.vehicles[
+                vehicle_list[action[person][0]]].get_drive_time(
+                self.persons.person_new[person].destination_position,
+                self.persons.person_new[person].origin_position
                 )
 
         state = {obj_id: self.item[obj_id].get_state() for obj_id in self.item} #get state
         for nam in self.persons.person:
             if(self.persons.person[nam].state == 'arrive'):
-                vertiport_up_position = self.persons.person[nam].vertiport_up_position
-                self.uam.vertiport_list[vertiport_up_position].add_new_passenger(nam) #到达指定机场
+                self.uam.add_new_passenger(nam)
                 self.persons.person[nam].state = 'w'
-                self.persons.person[nam].uam_wait_time = self.uam.vertiport_list[vertiport_up_position].get_wait_time()
-                self.persons.person[nam].fly_time = self.uam.vertiport_list[vertiport_up_position].get_fly_time()
+                self.persons.person[nam].uam_wait_time = self.uam.get_wait_time()
+                self.persons.person[nam].fly_time = self.uam.get_fly_time()
         
-        self.uam.update_objects_state(self.time) #进行修改
+        self.uam.update_objects_state(self.time)
         self.vehicles.update_objects_state(self.time)
         self.persons.update_objects_state(self.time)     
-        wait_person = self.uam.wait_person
+        wait_person = self.uam.get_wait_person()
         reward = 0
-        person_state = [] 
+        person_state = []
         for nam in self.persons.person:
             person_state.append(self.persons.person[nam].state)
             if(self.persons.person[nam].state == 'd'):
@@ -127,7 +131,9 @@ class Scenario(gym.Env):
             }
         terminated = False
         dones = False
-        if self.time >= 200: #终止条件
+        if self.time >= 120: #终止条件
+            print('UAM',self.UAM_num)
+            print('ground',self.ground_num)
             dones = True
         return state, reward, terminated, dones, info
     

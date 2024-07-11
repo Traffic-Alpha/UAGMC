@@ -9,16 +9,14 @@ from typing import List
 class Map(object):
     
     def __init__(self, 
-                 origin_position: List[int] = [6,6],
-                 destination_position: List[int] = [54, 54],
                  map_size: List[int] = [60,60],
                  map_imformaton: int = [[]*100,[]*100] 
                  ) -> None:
         
         #  place the plane takes off
-        self.vertiport_origin_position = origin_position 
+        self.vertiport_station = {0:[0,0],1:[6,6],2:[54, 54]}
+        self.vertiport_station_num = 3
         #  place the plane landed
-        self.vertiport_destination_position = destination_position 
         # map size
         self.map_len =  map_size[0]
         self.map_information = map_imformaton

@@ -28,9 +28,11 @@ class PersonInfo(object):
         # time begin passenger wait for match
         self.begin_time = time 
         # passenger， “wait”：wait for match； “drive”, success match taxi
-        self.state='n' # state n：new and not match w: wait v：vehicle drive  a：air taxi  d：arrive destination vd：vehicle to destination  del：计算完reward
+        self.state='n' # state n：new and not match  w: wait v：vehicle drive to origin  a：air taxi  d：arrive destination vd：vehicle to destination  del：计算完reward
         self.method = 'none' # ground 地面交通；UAM 乘坐空中交通 none 还没有决策
         self.wait_time = 0
+        self.vertiport_up_position = 0 # 起飞的 vertiport 标号
+        self.vertiport_off_position = 0 # 降落的 vertiport 标号
         self.uam_wait_time = 0 # uam排队等待时间
         self.fly_time = 0 #飞行所需要的时间 
         self.travel_time = 0 # 从起点开始行使的时间
