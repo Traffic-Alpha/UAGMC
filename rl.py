@@ -75,7 +75,7 @@ if __name__ == '__main__':
                 tensorboard_log=tensorboard_path, 
                 device=device
             )
-    model.learn(total_timesteps=7e4, callback=callback_list)
+    model.learn(total_timesteps=3e5, callback=callback_list)
     
     # #################
     # 保存 model 和 env
