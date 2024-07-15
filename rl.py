@@ -41,7 +41,7 @@ if __name__ == '__main__':
     params = {
         'log_file':log_path,
     }
-    env =SubprocVecEnv([make_env()]) 
+    env =SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(1)]) 
     env = VecNormalize(env, norm_obs=False, norm_reward=True)
     # #########
     # Callback
@@ -60,10 +60,10 @@ if __name__ == '__main__':
     # Training
     # #########
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    #policy_kwargs = dict(
-    #    features_extractor_class=CustomModel,
-    #    features_extractor_kwargs=dict(features_dim = 16),
-    #)
+    policy_kwargs = dict(
+       features_extractor_class=CustomModel,
+       features_extractor_kwargs=dict(features_dim = 16),
+    )
     model = PPO(
                 "MlpPolicy", 
                 env, 
@@ -71,11 +71,11 @@ if __name__ == '__main__':
                 n_steps = 3000, n_epochs=5, # 每次间隔 n_epoch 去评估一次
                 learning_rate=linear_schedule(5e-4),
                 verbose=True, 
-                #policy_kwargs=policy_kwargs, 
+                policy_kwargs=policy_kwargs, 
                 tensorboard_log=tensorboard_path, 
                 device=device
             )
-    model.learn(total_timesteps=1e6, callback=callback_list)
+    model.learn(total_timesteps=3e5, callback=callback_list)
     
     # #################
     # 保存 model 和 env

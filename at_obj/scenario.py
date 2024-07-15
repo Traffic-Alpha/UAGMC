@@ -128,7 +128,7 @@ class Scenario(gym.Env):
             }
         terminated = False
         dones = False
-        if self.time >= 600: #终止条件
+        if self.time >= 720: #终止条件
             dones = True
         return state, reward, terminated, dones, info
     

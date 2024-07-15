@@ -32,7 +32,7 @@ if __name__ == '__main__':
     dones = False
     rewards = 0
     while not dones:
-        action = [1,1,0,0] #action 对于站点的选择
+        action = [0,0,1,0] #action 对于站点的选择
         states, reward, truncated, dones, infos = tsc_env.step(action=action)
         rewards += reward
     print('rewards',rewards)
