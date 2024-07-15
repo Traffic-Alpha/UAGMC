@@ -26,8 +26,8 @@ class PersonBuilder(object):
     def create_objects(self, person_id:str)->None:
         
         origin_position = [
-                     random.randint(0, 0.2*self.map.map_len),
-                     random.randint(0, 0.2*self.map.map_len)]
+                     random.randint(0.1*self.map.map_len, 0.2*self.map.map_len),
+                     random.randint(0.1*self.map.map_len, 0.2*self.map.map_len)]
         destination_position=[
                      random.randint(0.8*self.map.map_len, self.map.map_len ),
                      random.randint(0.8*self.map.map_len,self.map.map_len)]

@@ -123,11 +123,12 @@ class Scenario(gym.Env):
             reward = self.total_traval_time/self.person_num # 返回平均收益 
         info = {
             'wait_person':wait_person,
-            'person_state':person_state
+            'person_state':person_state,
+            'persons':self.persons,
             }
         terminated = False
         dones = False
-        if self.time >= 200: #终止条件
+        if self.time >= 600: #终止条件
             dones = True
         return state, reward, terminated, dones, info
     

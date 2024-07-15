@@ -14,7 +14,7 @@ class Map(object):
                  ) -> None:
         
         #  place the plane takes off
-        self.vertiport_station = {0:[0,0],1:[6,6],2:[54, 54]}
+        self.vertiport_station = {0:[0,0],1:[10,10],2:[54, 54]}
         self.vertiport_station_num = 3
         #  place the plane landed
         # map size

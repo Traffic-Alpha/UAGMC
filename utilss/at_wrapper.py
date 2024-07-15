@@ -58,7 +58,8 @@ class atWrapper(gym.Wrapper):
         uam_info_list = np.array(uam_info_list)
         #state_wrapper = np.insert(state_wrapper, 0, values=uam_positon, axis=0
         state_wrapper = np.vstack((state_wrapper,uam_info_list))
-        state_wrapper = np.insert(state_wrapper, 0, values=info_wrapper, axis=0)
+        state_wrapper = np.insert(state_wrapper, 8, values=info_wrapper, axis=0)
+
         return state_wrapper
     
     # 机动车匹配模型 #重新写 match 不需要提前去接，直接默认接到
@@ -87,6 +88,7 @@ class atWrapper(gym.Wrapper):
             vehicle2person.append(vehicle_id)
 
         return vehicle2person
+
     # action = 0,1
     def action_wrapper(self, action, vehicle2person):
         action_wrapper = {}
@@ -96,22 +98,19 @@ class atWrapper(gym.Wrapper):
             action_wrapper[people] = [vehicle2person[i], action[i]]
             i += 1
         return action_wrapper
-    def info_wrapper(self,info_wrapper):
+
+    def info_wrapper(self,info):
         temp_state = [0,0,0,0]
-        for person_state in info_wrapper['person_state']:
-            if person_state == 'v':
-                temp_state[0] += 1
-            if person_state == 'w':
-                temp_state[1] += 1
-            if person_state == 'a':
-                temp_state[2] += 1
-            if person_state == 'vd':
-                temp_state[3] += 1
+        for nam in info['persons'].person:
+            if info['persons'].person[nam].state == 'v':
+                vertiport_up_position =int(info['persons'].person[nam].vertiport_up_position)
+                temp_state[vertiport_up_position] += 1
+     
         return temp_state
 
     def reward_wrapper(self, reward):
 
-        return reward
+        return -1 * reward
     
     def reset(self, seed=0) -> Tuple[Any, Dict[str, Any]]:
         
@@ -132,12 +131,10 @@ class atWrapper(gym.Wrapper):
         state, rewards, truncated, dones, info = super().step(action) # 与环境交互
         self.state = state
         self.vehicle2person = self.vehicle_match(state)
-        info_wrapper = self.info_wrapper (info_wrapper = info)
+        info_wrapper = self.info_wrapper (info = info)
         state_wrapper = self.state_wrapper(state = state, vehicle2person = self.vehicle2person, info_wrapper = info_wrapper) # 处理每一帧的数据
-        #reward_wrapper = self.reward_wrapper(rewards)
-        reward_wrapper = rewards - self.past_reward
-        reward_wrapper = -1 * reward_wrapper
-        self.past_reward = rewards
+        reward_wrapper = self.reward_wrapper(rewards)
+    
         return state_wrapper, reward_wrapper, truncated, dones, info
     
 
