@@ -36,6 +36,7 @@ class PersonInfo(object):
         self.uam_wait_time = 0 # uam排队等待时间
         self.fly_time = 0 #飞行所需要的时间 
         self.travel_time = 0 # 从起点开始行使的时间
+        self.state_list = []
     
     def match_vehicle(self, vehicle):
         self.state = 'v'
@@ -45,12 +46,12 @@ class PersonInfo(object):
     def update_state(self):
         # 更新行人状态
         #print('person',self.state)
+        self.state_list.append(self.state)
         if self.method == 'ground':
             if self.state == 'v':
                 self.ground_drive_traval -= 1
                 if self.ground_drive_traval <= 0:
                     self.state = 'd'
-
         if self.method == 'UAM' :
             if self.state == 'v' :
                 self.uam_drive_traval -= 1
@@ -68,6 +69,7 @@ class PersonInfo(object):
                 self.destination_drive_traval -= 1
                 if  self.destination_drive_traval <= 0: 
                     self.state = 'd'
+                    self.state_list.append(self.state)
 
     def get_state(self):
         #print(f'{self.id} | origin_position {self.origin_position} | '

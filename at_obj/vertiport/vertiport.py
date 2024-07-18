@@ -26,6 +26,7 @@ class VertiportInfo(object):
         # map information
         self.id = id
         self.vertiport_position = vertiport_position 
+        self.vertiport_destination = [54,54]
         self.speed = speed 
         # number of passengers that can be transported per minute
         self.volume = volume
@@ -63,5 +64,5 @@ class VertiportInfo(object):
     def get_state(self):
         wait_time = self.get_wait_time()
         fly_time = self.get_fly_time()
-        return(self.vertiport_position, self.wait_person, fly_time, wait_time, self.now_volume,0) 
+        return(self.vertiport_position, self.vertiport_destination , self.wait_person, wait_time, self.now_volume,fly_time) 
 

@@ -65,10 +65,10 @@ class UamBuilder(object):
         return int(distance/self.vertiport[vertiport_id].speed)
 
     def update_objects_state(self, time: int):
-        volume_list = [4, 1]
+        volume_list = [4, 2]
         self.time = time
         for vertiport_id in range(0,2): #只有两机场承担起飞任务
-            self.vertiport_list[vertiport_id].volume = volume_list[vertiport_id]
+            self.vertiport_list[vertiport_id].volume = volume_list[vertiport_id] + random.randint(-1, 0)  #加一些随机性, 人多了拥堵 速度下降
             self.vertiport_list[vertiport_id].now_volume = self.vertiport_list[vertiport_id].volume
             self.vertiport_list[vertiport_id].wait_person = self.vertiport_list[vertiport_id].wait_person - self.vertiport_list[vertiport_id].now_volume 
             self.vertiport_list[vertiport_id].wait_person = max(0,self.vertiport_list[vertiport_id].wait_person)

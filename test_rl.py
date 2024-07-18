@@ -5,30 +5,28 @@ from tshub.utils.init_log import set_logger
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import VecNormalize, SubprocVecEnv
 
-from utils.make_tsc_env import make_env
+from utilss.sb3_utils import VecNormalizeCallback, linear_schedule
+from utilss.make_env import make_env
 
 path_convert = get_abs_path(__file__)
 logger.remove()
+set_logger(path_convert('./'), file_log_level="INFO", terminal_log_level="INFO")
 
 if __name__ == '__main__':
     # #########
     # Init Env
     # #########
-    sumo_cfg = path_convert("../../sumo_envs/J1/env/J1.sumocfg")
+    log_path = path_convert('./log_test/')
     params = {
-        'tls_id':'J4',
-        'num_seconds': 2000,
-        'sumo_cfg':sumo_cfg,
-        'use_gui':True,
-        'log_file':path_convert('./log/'),
+        'log_file':log_path,
     }
-    env = SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(1)])
-    env = VecNormalize.load(load_path=path_convert('./models/last_vec_normalize.pkl'), venv=env)
+    env =SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(1)])
+    env = VecNormalize.load(load_path=path_convert('./models_1/last_vec_normalize.pkl'), venv=env)
     env.training = False # 测试的时候不要更新
     env.norm_reward = False
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model_path = path_convert('./models/last_rl_model.zip')
+    model_path = path_convert('./models_1/last_rl_model.zip')
     model = PPO.load(model_path, env=env, device=device)
 
     # 使用模型进行测试
@@ -39,7 +37,6 @@ if __name__ == '__main__':
     while not dones:
         action, _state = model.predict(obs, deterministic=True)
         obs, rewards, dones, infos = env.step(action)
-        total_reward += rewards
         
     env.close()
-    print(f'累积奖励为, {total_reward}.')
+    print(f'平均等待时间为, {rewards}.')

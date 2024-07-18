@@ -32,7 +32,7 @@ def get_time(person_station, vertiport_stateion, wait_time):
             abs(person_station[0]-vertiport_stateion[0]) 
             + abs(person_station[1]-vertiport_stateion[1])
             )/2 # manhattan distance
-    total_time = travel_time
+    total_time = travel_time + wait_time
 
     return total_time
 

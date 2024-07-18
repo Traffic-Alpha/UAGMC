@@ -7,12 +7,17 @@ FilePath: /Air_Taxi_simulation/utils/at_wrapper.py
 '''
 import numpy as np
 import gymnasium as gym
+import csv
+
 #from gym import spaces
 from gymnasium import spaces  #考虑不同版本
 from gymnasium.core import Env
 from gym.spaces import Box
 from collections import deque
 from typing import Any, SupportsFloat, Tuple, Dict
+
+from loguru import logger
+
 
 class atWrapper(gym.Wrapper):
     """TSC Env Wrapper for single junction with tls_id
@@ -52,8 +57,8 @@ class atWrapper(gym.Wrapper):
             uam_wait = np.array([0,0,0,0])
             uam_wait[0] = uam_info[2] # wait person
             uam_wait[1] = uam_info[3] # wait time
-            uam_wait[2] = uam_info[4]
-            uam_wait[3] = uam_info[5]
+            uam_wait[2] = uam_info[4] # speed
+            uam_wait[3] = uam_info[5] # fly time
             uam_info_list.append(uam_wait)
         uam_info_list = np.array(uam_info_list)
         #state_wrapper = np.insert(state_wrapper, 0, values=uam_positon, axis=0
@@ -97,6 +102,7 @@ class atWrapper(gym.Wrapper):
             #[vehicle_id, if choose UAM] it can chouse 'UAM' or 'ground'
             action_wrapper[people] = [vehicle2person[i], action[i]]
             i += 1
+
         return action_wrapper
 
     def info_wrapper(self,info):
@@ -105,7 +111,7 @@ class atWrapper(gym.Wrapper):
             if info['persons'].person[nam].state == 'v':
                 vertiport_up_position =int(info['persons'].person[nam].vertiport_up_position)
                 temp_state[vertiport_up_position] += 1
-     
+
         return temp_state
 
     def reward_wrapper(self, reward):
@@ -129,6 +135,16 @@ class atWrapper(gym.Wrapper):
         """
         action = self.action_wrapper(action = action, vehicle2person = self.vehicle2person)
         state, rewards, truncated, dones, info = super().step(action) # 与环境交互
+        if dones == True:
+            with open('{}.csv'.format('pesrson_state'), 'w', encoding='utf-8', newline='') as f:
+                writer = csv.writer(f, dialect='excel')
+                person_state = []
+                for nam in info['persons'].person:
+                    vertiport_up_position = info['persons'].person[nam].vertiport_up_position
+                    temp = info['persons'].person[nam].state_list
+                    writer.writerow(temp)
+                    #logger.info(f"SIM: {info['persons'].person[nam].vertiport_up_position} \n + {info['persons'].person[nam].state_list}")
+                    person_state.append(temp)
         self.state = state
         self.vehicle2person = self.vehicle_match(state)
         info_wrapper = self.info_wrapper (info = info)

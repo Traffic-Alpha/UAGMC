@@ -25,7 +25,7 @@ set_logger(path_convert('./'), terminal_log_level="INFO")
 
 if __name__ == '__main__':
     log_path = path_convert('./log/')
-    model_path = path_convert('./models/')
+    model_path = path_convert('./models_1/')
     tensorboard_path = path_convert('./tensorboard/')
     if not os.path.exists(log_path):
         os.makedirs(log_path)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     params = {
         'log_file':log_path,
     }
-    env =SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(1)]) 
+    env =SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(4)]) 
     env = VecNormalize(env, norm_obs=False, norm_reward=True)
     # #########
     # Callback
@@ -68,14 +68,14 @@ if __name__ == '__main__':
                 "MlpPolicy", 
                 env, 
                 #batch_size=64,
-                n_steps = 3000, n_epochs=5, # 每次间隔 n_epoch 去评估一次
+                n_steps = 3000, n_epochs=1, # 每次间隔 n_epoch 去评估一次
                 learning_rate=linear_schedule(5e-4),
                 verbose=True, 
                 policy_kwargs=policy_kwargs, 
                 tensorboard_log=tensorboard_path, 
                 device=device
             )
-    model.learn(total_timesteps=3e5, callback=callback_list)
+    model.learn(total_timesteps=5e5, callback=callback_list)
     
     # #################
     # 保存 model 和 env

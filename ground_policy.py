@@ -17,24 +17,28 @@ from utilss.make_env import make_env
 
 def greedy_policy(state):
     action = [0,0,0,0]
-    persons_station = state[0:4]
-    for i in range(0,4):
-        person_station = persons_station[i,:]
-        station_0 = get_time(person_station,[0,0],state[5,1])
-        station_1 = get_time(person_station,[10,10],state[7,1])
-        if station_1 < station_0:
-            action[i] = 1
+
     return action
 
-def get_time(person_station, vertiport_stateion, wait_time):
+def ground_policy(state):
+    persons_station = state[0:4]
+    temp = 0
+    for i in range(0,4):
+        person_station = persons_station[i,:]
+        station_0 = get_time(person_station)
+        temp +=  station_0
+    return temp
+
+
+def get_time(person_station):
 
     travel_time=(
-            abs(person_station[0]-vertiport_stateion[0]) 
-            + abs(person_station[1]-vertiport_stateion[1])
+            abs(person_station[0]-person_station[2]) 
+            + abs(person_station[1]-person_station[3])
             )/2 # manhattan distance
     total_time = travel_time
 
-    return total_time
+    return travel_time
 
 def get_uam_time(state):
     uam_time = state[1] + state[2]
@@ -46,10 +50,9 @@ states, _ = tsc_env.reset()
 dones = False
 rewards = 0
 while not dones:
+    rewards += ground_policy(states)
     action = greedy_policy(states)
-    print(action)
     states, reward, truncated, dones, infos = tsc_env.step(action=action)
-    reward
 tsc_env.close()
 
-print('平均等待时间为',reward)
+print('平均等待时间为',rewards/1200)

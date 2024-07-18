@@ -103,7 +103,7 @@ class Scenario(gym.Env):
             if(self.persons.person[nam].state == 'arrive'):
                 vertiport_up_position = self.persons.person[nam].vertiport_up_position
                 self.uam.vertiport_list[vertiport_up_position].add_new_passenger(nam) #到达指定机场
-                self.persons.person[nam].state = 'w'
+                self.persons.person[nam].state = 'w' # person  state 的状态变为 w
                 self.persons.person[nam].uam_wait_time = self.uam.vertiport_list[vertiport_up_position].get_wait_time()
                 self.persons.person[nam].fly_time = self.uam.vertiport_list[vertiport_up_position].get_fly_time()
         
@@ -128,7 +128,7 @@ class Scenario(gym.Env):
             }
         terminated = False
         dones = False
-        if self.time >= 720: #终止条件
+        if self.time >= 300: #终止条件
             dones = True
         return state, reward, terminated, dones, info
     
