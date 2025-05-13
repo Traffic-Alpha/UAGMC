@@ -1,6 +1,6 @@
 # UAGMC: Urban Air-Ground Mobility Coordination
 
-A Deep Reinforcement Learning Framework for Coordinating Urban Air Mobility (UAM) and Ground Transportation Systems.
+Heterogeneous Vertiport Selection Optimization for On-Demand Air Taxi Services: A Deep Reinforcement Learning Approach
 
 ## 📌 Overview
 
