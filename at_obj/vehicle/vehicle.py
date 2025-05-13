@@ -13,7 +13,7 @@ class Vehicle(object):
     def __init__(
             self,id: str ='0', 
             origin_position: List[int] =[0,0],
-            speed: int = 2, #两个格子 60 km/h
+            speed: int = 1.5, #1.5个格子 45 km/h
             ) -> None: 
         
         self.id = id

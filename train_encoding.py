@@ -2,7 +2,7 @@
 Author: pangay 1623253042@qq.com
 Date: 2024-01-11 20:58:46
 LastEditors: pangay 1623253042@qq.com
-LastEditTime: 2025-05-13 14:57:04
+LastEditTime: 2025-04-29 16:01:24
 '''
     
 import os
@@ -18,14 +18,14 @@ from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback
 
 from utilss.sb3_utils import VecNormalizeCallback, linear_schedule
 from utilss.make_env import make_env
-
+from utilss.encoding import Embedding
 path_convert = get_abs_path(__file__)
 logger.remove()
 set_logger(path_convert('./'), terminal_log_level="INFO")
 
 if __name__ == '__main__':
-    log_path = path_convert('./model_train_all_5log/')
-    model_path = path_convert('./test/')
+    log_path = path_convert('./log/')
+    model_path = path_convert('./model_encode_state_5/')
     tensorboard_path = path_convert('./tensorboard/')
     if not os.path.exists(log_path):
         os.makedirs(log_path)
@@ -61,8 +61,8 @@ if __name__ == '__main__':
     # #########
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     policy_kwargs = dict(
-       features_extractor_class=CustomModel,
-       features_extractor_kwargs=dict(features_dim = 16),
+       features_extractor_class=Embedding,
+       features_extractor_kwargs=dict(features_dim = 16*5),
     )
     model = PPO(
                 "MlpPolicy", 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
                 tensorboard_log=tensorboard_path, 
                 device=device
             )
-    model.learn(total_timesteps=3e6, callback=callback_list)
+    model.learn(total_timesteps=1e6, callback=callback_list)
     
     # #################
     # 保存 model 和 env

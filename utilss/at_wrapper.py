@@ -2,7 +2,7 @@
 Author: pangay 1623253042@qq.com
 Date: 2024-01-11 21:21:42
 LastEditors: pangay 1623253042@qq.com
-LastEditTime: 2024-01-21 23:06:58
+LastEditTime: 2025-05-13 14:57:43
 FilePath: /Air_Taxi_simulation/utils/at_wrapper.py
 '''
 import numpy as np
@@ -28,12 +28,29 @@ class atWrapper(gym.Wrapper):
 
         # Dynamic Information
         self.state = None # 当前的 state
+        max_states = 5 #选取的帧数
+        self.states = deque([self._get_initial_state()] * max_states, maxlen=max_states) 
         self.action_space =  spaces.MultiBinary(4)
-        self.observation_space = spaces.Box(low= 0, high = 1000, shape=(9, 4), dtype = np.int64)
+        self.observation_space = spaces.Box(low= 0, high = 1000, shape=(max_states, 9, 4), dtype = np.int64)
         self.past_reward = 0
         # 4 个行人的位置 起点 终点 
         # 机场的位置 两个坐标 
         # 车的速度 飞机的速度 排队等待的人数  
+    
+    def _get_initial_state(self):
+        # 返回初始状态，这里假设所有状态都为 0
+        return np.zeros((9,4))
+    
+    def get_state(self):
+        """将 state 从二维 (5, 12) 转换为一维 (1, 60)
+        """
+        new_state = dict()
+        
+        new_state = np.array(
+                self.states, 
+                dtype=np.int64
+            ).reshape((-1,9,4))
+        return new_state
 
     def state_wrapper(self, state, vehicle2person, info_wrapper):
         """构建state的格式
@@ -126,6 +143,8 @@ class atWrapper(gym.Wrapper):
         self.vehicle2person = self.vehicle_match(state)
         info_wrapper = [0,0,0,0]
         state_wrapper = self.state_wrapper(state = state, vehicle2person = self.vehicle2person, info_wrapper = info_wrapper )
+        self.states.append(state_wrapper)
+        state_wrapper = self.get_state()
         info =  {'uam_fly_time':0, 'uam_wait_time':0, 'reward_drive_time':0,'reward_match_time':0}
         return state_wrapper, info
     
@@ -136,12 +155,13 @@ class atWrapper(gym.Wrapper):
         action = self.action_wrapper(action = action, vehicle2person = self.vehicle2person)
         state, rewards, truncated, dones, info = super().step(action) # 与环境交互
         if dones == True:
-            with open('{}.csv'.format('pesrson_state'), 'w', encoding='utf-8', newline='') as f:
+            with open('{}.csv'.format('rl_encode'), 'w', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f, dialect='excel')
                 person_state = []
                 for nam in info['persons'].person:
                     vertiport_up_position = info['persons'].person[nam].vertiport_up_position
                     temp = info['persons'].person[nam].state_list
+                    temp.append(int(info['persons'].person[nam].vertiport_up_position))
                     writer.writerow(temp)
                     #logger.info(f"SIM: {info['persons'].person[nam].vertiport_up_position} \n + {info['persons'].person[nam].state_list}")
                     person_state.append(temp)
@@ -149,9 +169,10 @@ class atWrapper(gym.Wrapper):
         self.vehicle2person = self.vehicle_match(state)
         info_wrapper = self.info_wrapper (info = info)
         state_wrapper = self.state_wrapper(state = state, vehicle2person = self.vehicle2person, info_wrapper = info_wrapper) # 处理每一帧的数据
+        self.states.append(state_wrapper)
         reward_wrapper = self.reward_wrapper(rewards)
-    
-        return state_wrapper, reward_wrapper, truncated, dones, info
+        state_now = self.get_state()
+        return state_now, reward_wrapper, truncated, dones, info
     
 
     def close(self) -> None:

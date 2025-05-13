@@ -1,7 +1,7 @@
 '''
 Author: PangAY
 Date: 2023-12-08 17:01:38
-LastEditTime: 2024-01-22 13:55:14
+LastEditTime: 2025-04-29 16:05:58
 LastEditors: pangay 1623253042@qq.com
 '''
 import sys
@@ -128,7 +128,7 @@ class Scenario(gym.Env):
             }
         terminated = False
         dones = False
-        if self.time >= 300: #终止条件
+        if self.time >= 360: #终止条件
             dones = True
         return state, reward, terminated, dones, info
     

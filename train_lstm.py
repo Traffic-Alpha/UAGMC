@@ -2,7 +2,7 @@
 Author: pangay 1623253042@qq.com
 Date: 2024-01-11 20:58:46
 LastEditors: pangay 1623253042@qq.com
-LastEditTime: 2025-05-13 14:57:04
+LastEditTime: 2025-04-29 23:19:01
 '''
     
 import os
@@ -11,7 +11,7 @@ from loguru import logger
 from tshub.utils.get_abs_path import get_abs_path
 from tshub.utils.init_log import set_logger
 
-from utilss.feature_extraction import CustomModel
+from utilss.test_lstm import lstm_model
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback
@@ -24,8 +24,8 @@ logger.remove()
 set_logger(path_convert('./'), terminal_log_level="INFO")
 
 if __name__ == '__main__':
-    log_path = path_convert('./model_train_all_5log/')
-    model_path = path_convert('./test/')
+    log_path = path_convert('./no_encode_5_log/')
+    model_path = path_convert('./model_no_encode_5/')
     tensorboard_path = path_convert('./tensorboard/')
     if not os.path.exists(log_path):
         os.makedirs(log_path)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # #########
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     policy_kwargs = dict(
-       features_extractor_class=CustomModel,
+       features_extractor_class=lstm_model,
        features_extractor_kwargs=dict(features_dim = 16),
     )
     model = PPO(
@@ -75,7 +75,7 @@ if __name__ == '__main__':
                 tensorboard_log=tensorboard_path, 
                 device=device
             )
-    model.learn(total_timesteps=3e6, callback=callback_list)
+    model.learn(total_timesteps=1e6, callback=callback_list)
     
     # #################
     # 保存 model 和 env
