@@ -20,4 +20,6 @@ class Map(object):
         # map size
         self.map_len =  map_size[0]
         self.map_information = map_imformaton
-        # 比例尺 1h 1公里 行程在 1h内， 60 * 60
+        # 比例尺 1h 0.5公里 行程在 1h内， 60 * 60 
+
+        # 每条边 增加拥堵系数，改为路网图# 宏观仿真

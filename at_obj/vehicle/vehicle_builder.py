@@ -5,81 +5,139 @@ LastEditTime: 2024-01-17 23:37:15
 LastEditors: pangay 1623253042@qq.com
 '''
 import random
-
+import math
+from typing import Dict, List, Any
 from loguru import logger
-from typing import Dict, Any
+
 from .vehicle import Vehicle
 from at_obj.map.map import Map
 
-class VehicleBuilder(object):
 
-    def __init__(self, vehicle_num: int = 10, ) -> None:
-        
-        self.map = Map()
-        self.vehicles:Dict[str,Vehicle] = {}
-        #
-        self.vehicle_num = vehicle_num 
+class VehicleBuilder:
+    """
+    Vehicle manager.
+    Responsible for:
+    - spawning new vehicles
+    - updating vehicle states
+    - providing state info for decision-making
+    """
+
+    def __init__(
+        self,
+        map: Any = Map(),
+        init_vehicle_num: int = 10,
+        spawn_rate: int = 1,      # 每步新增车辆数量
+        spawn_interval: int = 1   # 每隔几分钟生成新车辆
+    ) -> None:
+        self.map = map
+        self.init_vehicle_num = init_vehicle_num
+        self.spawn_rate = spawn_rate
+        self.spawn_interval = spawn_interval
+
         self.time = 0
-    
-        for veh in range(0,self.vehicle_num):
-            vehicle_id = str(veh) 
-            vehicle_info = Vehicle(vehicle_id).create_object()
-            self.vehicles[vehicle_id] = vehicle_info
+        self.vehicles: Dict[str, Vehicle] = {}
 
-    def create_objects(self, vehicle_id: str)->None:
-        origin_position = [
-                     random.randint(0, 0.3*self.map.map_len),
-                     random.randint(0, 0.3*self.map.map_len)]
-        vehicle_info = Vehicle(vehicle_id ,
-                               origin_position=origin_position 
-                        ).create_object() 
-        
-        self.vehicles[vehicle_id]=vehicle_info
-    
+        # 初始化车辆
+        for vid in range(self.init_vehicle_num):
+            vehicle = self._create_vehicle(str(vid))
+            self.vehicles[str(vid)] = vehicle
 
-    def __delete_vehicle(self, vehicle_id: str) -> None:
-        
-        """删除指定 id 的vehicle
-        Args:
-            vehicle_id (str): vehicle_id id
+    # =========================
+    # 生命周期
+    # =========================
+    def reset(self):
+        self.time = 0
+        self.vehicles.clear()
+        for vid in range(self.init_vehicle_num):
+            vehicle = self._create_vehicle(str(vid))
+            self.vehicles[str(vid)] = vehicle
+
+    # =========================
+    # 生成新车辆
+    # =========================
+    def spawn(self, time: int) -> List[str]:
         """
-        if vehicle_id in self.vehicles:
-            #logger.info(f"SIM: Delete Vehicle with ID {vehicle_id}.")
-            del self.vehicles[vehicle_id] # 匹配成功后自动 unsubscribe
-        else:
-            logger.warning(f"SIM: Vehicle with ID {vehicle_id} does not exist.")
-            
-    def update_objects_state(self, time: int) -> None:
-        
-        """更新场景中所有机动车信息, 包含两个部分:
-        1. 对于匹配成功的车辆，将其从 self.vehicles 中删除；
-        2. 对于新进入环境的机动车，将其添加在 self.vehicles；
+        每隔 spawn_interval 生成新的车辆
+        返回新生成车辆的 ID 列表
         """
         self.time = time
-        del_num = 0 # matched vehicles
-        # 删除离开环境的车辆
-        for vehicle_id in list(self.vehicles.keys()):
-            if self.vehicles[vehicle_id].state == 'drive':
-                self.__delete_vehicle(vehicle_id)
-                del_num += 1
+        new_ids = []
 
-        # add mew vehicles
-        for _ in range(0,del_num):  
-            vehicle_id = self.vehicle_num
-            self.vehicle_num = self.vehicle_num+1
-            self.create_objects(str(vehicle_id))
-            
+        if time % self.spawn_interval != 0:
+            return new_ids
+
+        for i in range(self.spawn_rate):
+            vid = str(len(self.vehicles) + i)
+            vehicle = self._create_vehicle(vid)
+            self.vehicles[vid] = vehicle
+            new_ids.append(vid)
+
+        return new_ids
+
+    def _create_vehicle(self, vehicle_id: str) -> Vehicle:
+        origin_position = [
+            random.randint(0, int(0.3 * self.map.map_len)),
+            random.randint(0, int(0.3 * self.map.map_len))
+        ]
+        vehicle = Vehicle(vehicle_id, origin_position=origin_position).create_object()
+        vehicle.state = "idle"  # 默认状态为空闲
+        return vehicle
+
+    # =========================
+    # 状态更新
+    # =========================
+    def update_objects_state(self, time: int):
+        """
+        每步更新车辆状态：
+        - 移动中的车辆可以被标记删除或完成任务
+        - 空闲车辆继续存在
+        """
+        self.time = time
+        finished_ids = []
+
+        for vid, vehicle in list(self.vehicles.items()):
+            vehicle.update_state()
+            if vehicle.state == "done":  # 完成任务，或者离开环境
+                finished_ids.append(vid)
+                del self.vehicles[vid]
+
+        return finished_ids
+
+    # =========================
+    # 查询接口
+    # =========================
     def get_state(self):
-        '''
-        for vehicle in  self.vehicles:
-            print(self.vehicles[vehicle].get_state())
-        '''
-        return self.vehicles   
-    
-    def init_builder(self):
-        self.time = 0
-        self.vehicles:Dict[str,Vehicle] = {}
-        for veh in range(0,self.vehicle_num):
-            vehicle_id = str(veh) 
-            vehicle_info = Vehicle(vehicle_id).create_object()
-            self.vehicles[vehicle_id] = vehicle_info
+        return {vid: v.get_state() for vid, v in self.vehicles.items()}
+
+    def get_idle_vehicles(self) -> List[str]:
+        return [vid for vid, v in self.vehicles.items() if v.state == "idle"]
+
+
+    def estimate_travel_time(
+        self,
+        origin: List[float],
+        destination: List[float],
+        speed_kmph: float = 40.0
+    ) -> int:
+        """
+        Estimate ground travel time between two positions.
+
+        Args:
+            origin: [x, y]
+            destination: [x, y]
+            speed_kmph: average ground vehicle speed
+
+        Returns:
+            travel_time (int): minutes (>=1)
+        """
+        dx = (destination[0] - origin[0]) * 0.5  # 地图比例尺 1h 0.5公里
+        dy = (destination[1] - origin[1]) * 0.5
+
+        # 欧式距离（km）
+        distance_km = math.sqrt(dx * dx + dy * dy)
+
+        # 时间（分钟）
+        travel_time_min = distance_km / speed_kmph * 60.0
+
+        # 至少 1 步，避免 0
+        return max(1, int(math.ceil(travel_time_min)))

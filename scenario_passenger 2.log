@@ -1,0 +1,26 @@
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=0 vertiport=0 capacity=5 current=0 need_spawn=5
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_0 vertiport=0 state=CHARGING battery=11.27 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_1 vertiport=0 state=CHARGING battery=47.42 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_2 vertiport=0 state=CHARGING battery=26.65 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_3 vertiport=0 state=CHARGING battery=25.15 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_4 vertiport=0 state=CHARGING battery=16.65 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=0 vertiport=1 capacity=2 current=0 need_spawn=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_5 vertiport=1 state=CHARGING battery=16.54 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_6 vertiport=1 state=CHARGING battery=8.86 capacity=2
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=0 vertiport=2 capacity=1 current=0 need_spawn=1
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=spawn time=0 evtol_id=new_7 vertiport=2 state=CHARGING battery=22.78 capacity=2
+[SCENARIO_PASSENGER] event = reset init_evtols_completed
+[SCENARIO_PASSENGER] ===== STEP 0 START =====
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=0 vertiport=0 capacity=5 current=5 need_spawn=0
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=0 vertiport=1 capacity=2 current=2 need_spawn=0
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=0 vertiport=2 capacity=1 current=1 need_spawn=0
+[SCENARIO_PASSENGER] [STEP END] time=0 reward=0.0
+[SCENARIO_PASSENGER] ===== STEP 1 START =====
+[SCENARIO_PASSENGER] [SPAWN] pid=1_0 time=1
+[SCENARIO_PASSENGER] [SPAWN] pid=1_0 time=1
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=1 vertiport=0 capacity=5 current=5 need_spawn=0
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=1 vertiport=1 capacity=2 current=2 need_spawn=0
+[SCENARIO_PASSENGER] [SCENARIO_EVTOL] event=capacity_check time=1 vertiport=2 capacity=1 current=1 need_spawn=0
+[SCENARIO_PASSENGER] [Passenger] id=1_0 time=1 state=new sub_state=None from=None to=None start=None end=None
+[SCENARIO_PASSENGER] [PASSENGER_STATS] pid=1_0 to_vertiport=0 wait_uam=0 fly=0 total=0
+[SCENARIO_PASSENGER] [STEP END] time=1 reward=0.0

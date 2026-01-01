@@ -18,6 +18,14 @@ from typing import Any, SupportsFloat, Tuple, Dict
 
 from loguru import logger
 
+# state  乘客 起点，终点
+# 前往不同 vertiport 的人数
+# 每个 vertiport 等待的人数
+# vertiport 中每个 eVTOL 的状态
+# eVTOL所在的 vertiport 载客人数，飞行速度， 充电时间
+# action  [0,1]
+# 特征提取函数 encoder/decoder 进行决策
+# 软件的自成长/更新性质/文件更改后，主动重新加载，进行局部更新/是否可行？
 
 class atWrapper(gym.Wrapper):
     """TSC Env Wrapper for single junction with tls_id

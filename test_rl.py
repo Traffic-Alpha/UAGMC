@@ -1,51 +1,103 @@
-'''
+"""
 Author: pangay 1623253042@qq.com
-Date: 2025-05-13 14:55:52
-LastEditors: pangay 1623253042@qq.com
-LastEditTime: 2025-05-13 14:56:55
+Date: 2025-05-13
 FilePath: /UAGMC/test_rl.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-'''
-#%%
-import torch
-from loguru import logger
-from tshub.utils.get_abs_path import get_abs_path
-from tshub.utils.init_log import set_logger
-from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import VecNormalize, SubprocVecEnv
+Description: PPO evaluation for UAM RL environment
+"""
 
-from utilss.sb3_utils import VecNormalizeCallback, linear_schedule
+# =========================
+# Imports
+# =========================
+import torch
+from pathlib import Path
+from loguru import logger
+
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+
 from utilss.make_env import make_env
 
-path_convert = get_abs_path(__file__)
-logger.remove()
-set_logger(path_convert('./'), file_log_level="INFO", terminal_log_level="INFO")
 
-if __name__ == '__main__':
-    # #########
-    # Init Env
-    # #########
-    log_path = path_convert('./log_test/')
-    params = {
-        'log_file':log_path,
-    }
-    env =SubprocVecEnv([make_env(env_index=f'{i}', **params) for i in range(1)])
-    env = VecNormalize.load(load_path=path_convert('./model_encode_state_5/last_vec_normalize.pkl'), venv=env)
-    env.training = False # 测试的时候不要更新
+# =========================
+# Path utils
+# =========================
+ROOT = Path(__file__).resolve().parent
+MODEL_DIR = ROOT / "models"
+LOG_DIR = ROOT / "logs"
+
+
+# =========================
+# Main
+# =========================
+if __name__ == "__main__":
+
+    # -------------------------
+    # 1. Environment config
+    # -------------------------
+    n_envs = 1
+    max_time = 420
+
+    env = DummyVecEnv([
+        make_env(
+            max_time=max_time,
+            log_dir=LOG_DIR,
+            env_index=0,
+            candidate_from_vertiports=[0, 1],
+            to_vertiport=2,
+            person_spawn_file="passengers.csv",  # 与训练保持一致
+            enable_logger = True,
+        )
+    ])
+
+    # -------------------------
+    # 2. Load VecNormalize
+    # -------------------------
+    vecnorm_path = MODEL_DIR / "final_vec_normalize.pkl"
+    assert vecnorm_path.exists(), "VecNormalize file not found!"
+
+    env = VecNormalize.load(vecnorm_path, env)
+
+    # ⚠️ 测试时一定要关
+    env.training = False
     env.norm_reward = False
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model_path = path_convert('./model_encode_state_5/last_rl_model.zip')
-    model = PPO.load(model_path, env=env, device=device)
+    # -------------------------
+    # 3. Load model
+    # -------------------------
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # 使用模型进行测试
+    model_path = MODEL_DIR / "final_rl_model.zip"
+    assert model_path.exists(), "RL model not found!"
+
+    model = PPO.load(
+        model_path,
+        env=env,
+        device=device
+    )
+
+    logger.info("Model and environment loaded. Start evaluation.")
+
+    # -------------------------
+    # 4. Run evaluation
+    # -------------------------
     obs = env.reset()
-    dones = False # 默认是 False
-    total_reward = 0
+    done = False
 
-    while not dones:
-        action, _state = model.predict(obs, deterministic=True)
-        obs, rewards, dones, infos = env.step(action)
-        
+    episode_reward = 0.0
+    step_count = 0
+
+    while not done:
+        action, _ = model.predict(obs, deterministic=True)
+        obs, reward, done, info = env.step(action)
+
+        episode_reward += reward[0]
+        step_count += 1
+
+    # -------------------------
+    # 5. Results
+    # -------------------------
+    logger.success(f"Evaluation finished.")
+    logger.info(f"Total steps: {step_count}")
+    logger.info(f"Episode reward: {episode_reward:.3f}")
+
     env.close()
-    print(f'平均等待时间为, {rewards}.')
