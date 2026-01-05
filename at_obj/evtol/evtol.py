@@ -29,11 +29,12 @@ class eVTOL:
     planned_energy_kwh: float = 0.0
     just_arrived: bool = False
     just_departed: bool = False
+    battery_pct: float = 1.0
 
 
     def __post_init__(self):
         self.battery_kwh = self.spec.battery_capacity_kwh
-
+        
     # =======================
     # 状态检查
     # =======================
@@ -58,7 +59,8 @@ class eVTOL:
     def step(self, delta_time_min: float):
         self.just_arrived = False
         self.just_departed = False
-
+        battery_pct = self.battery_kwh / self.spec.battery_capacity_kwh
+        self.battery_pct = battery_pct
 
         if self.state == VehicleState.FLYING:
             self.remaining_time -= delta_time_min
@@ -66,12 +68,13 @@ class eVTOL:
                 self._finish_flight()
 
         elif self.state == VehicleState.CHARGING:
-            self.battery_kwh = min(
-                self.battery_kwh + delta_time_min * self.spec.charge_rate_kwh_per_min,
-                self.spec.battery_capacity_kwh
-            )
-            if self.battery_kwh >= self.spec.battery_capacity_kwh:
+   
+            if battery_pct >= 1.0:
                 self.state = VehicleState.IDLE
+            # ===== 关键修复：防止“没充满就 IDLE” =====
+        elif self.state == VehicleState.IDLE:
+            if battery_pct < 1.0:
+                self.state = VehicleState.CHARGING
 
             
     def start_flight(
@@ -144,7 +147,7 @@ class eVTOL:
             "state": self.state,
             "current_vertiport": self.current_vertiport_id,
             "target_vertiport": self.target_vertiport_id,
-            "battery_kwh": self.battery_kwh,
-            "passengers": self.passenger_count,
+            "battery_pct": self.battery_pct,
+            "passengers": self.passenger_ids,
             "remaining_time": self.remaining_time
         }

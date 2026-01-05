@@ -37,8 +37,8 @@ class VertiportBuilder:
                 # 默认每个 vertiport 2 架
         
         self.vertiport_evtol_capacity = {
-                                    "0": 5, # 测试场景 vertiport 0 有 5 架 即城市郊区有更大的机场
-                                    "1": 3,
+                                    "0": 3, # 测试场景 vertiport 0 有 3 架 即城市郊区有更大的机场
+                                    "1": 1,
                                     "2": 1
                                 }
 
@@ -246,8 +246,8 @@ class VertiportBuilder:
                     {
                         "id": e.id,
                         "state": e.state.name,
-                        "battery": e.battery_kwh,
-                        "passenger_count": e.passenger_ids,
+                        "battery_pct": e.battery_pct,
+                        "passengers": e.passenger_ids,
                         "current_vertiport": e.current_vertiport_id
                     }
                     for e in self.evtols_at_vertiport[vid]

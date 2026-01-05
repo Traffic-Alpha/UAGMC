@@ -1,37 +1,85 @@
 import gym
+import torch
 import torch.nn as nn
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
-class Embedding(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.Space, features_dim: int = 16):
-        """特征提取网络
-        """
+
+# 没有 attention encoder 稳定  # 补充实验
+class TemporalLSTMExtractor(BaseFeaturesExtractor):
+    """
+    LSTM-based temporal feature extractor for ablation study.
+    Aligned with TemporalTransformerExtractor.
+    """
+
+    def __init__(
+        self,
+        observation_space: gym.Space,
+        features_dim: int = 128,
+
+        # ===== encoder =====
+        use_encoder: bool = True,
+
+        # ===== LSTM =====
+        hidden_dim: int = 128,
+        num_layers: int = 1,
+
+        # ===== aggregation =====
+        aggregation: str = "last",  # "last" | "mean"
+    ):
         super().__init__(observation_space, features_dim)
-        net_shape = 36
-        self.embedding = nn.Sequential(
-            nn.Linear(net_shape, 32),
-            nn.ReLU(),
-            nn.Linear(32, 16),
-            nn.ReLU()
-        ) # 5* -> 5*32
-        
+
+        T, obs_dim = observation_space.shape
+        self.T = T
+        self.aggregation = aggregation
+        self.use_encoder = use_encoder
+
+        # =====================
+        # 1. Frame Encoder
+        # =====================
+        if use_encoder:
+            self.frame_encoder = nn.Linear(obs_dim, features_dim)
+            lstm_input_dim = features_dim
+        else:
+            self.frame_encoder = nn.Identity()
+            self.input_proj = nn.Linear(obs_dim, features_dim)
+            lstm_input_dim = features_dim
+
+        # =====================
+        # 2. Temporal Model (LSTM)
+        # =====================
         self.lstm = nn.LSTM(
-            input_size=32, hidden_size=64,
-            num_layers=1, batch_first=True
-        )
-        self.relu = nn.ReLU()
-
-        self.output = nn.Sequential(
-            nn.Linear(32, 32),
-            
+            input_size=lstm_input_dim,
+            hidden_size=hidden_dim,
+            num_layers=num_layers,
+            batch_first=True,
         )
 
-    def forward(self, observations):
-        
-        batch_size = observations.shape[0]
-        time_length =  observations.shape[1]
-        observations = observations.reshape(batch_size*time_length,-1)
-        embedding = self.embedding(observations)
-        embedding = embedding.reshape(batch_size,-1)
+        # =====================
+        # 3. Output head
+        # =====================
+        self.output_proj = nn.Linear(hidden_dim, features_dim)
 
-        return embedding
+    def forward(self, obs: torch.Tensor) -> torch.Tensor:
+        """
+        obs: (B, T, obs_dim)
+        """
+        B, T, _ = obs.shape
+
+        # ----- Frame encoding -----
+        if self.use_encoder:
+            x = self.frame_encoder(obs)      # (B, T, D)
+        else:
+            x = self.input_proj(obs)          # (B, T, D)
+
+        # ----- Temporal modeling -----
+        lstm_out, _ = self.lstm(x)            # (B, T, H)
+
+        # ----- Aggregation -----
+        if self.aggregation == "last":
+            h = lstm_out[:, -1]               # (B, H)
+        elif self.aggregation == "mean":
+            h = lstm_out.mean(dim=1)          # (B, H)
+        else:
+            raise ValueError(f"Unknown aggregation: {self.aggregation}")
+
+        return self.output_proj(h)

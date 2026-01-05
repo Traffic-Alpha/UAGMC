@@ -36,6 +36,7 @@ from at_obj.vehicle.vehicle_builder import VehicleBuilder
 from at_obj.vertiport.vertiport_builder import VertiportBuilder
 from at_obj.evtol.evtol_builder import eVTOLBuilder
 from at_obj.evtol.evtol import eVTOL
+from at_obj.evtol.evtol_registry import EVTOL_SPECS
 
 
 # 这里 scenario 中增加， 如果飞走了一辆 eVTOL  那么再随机生成一辆降落 保证机场的容量 随机这辆 eVTOL 的需要充电的时间 
@@ -74,6 +75,12 @@ class Scenario(gym.Env):
                             )
         self.eVTOL_last_id  += total_evtols
         self._all_evtols: Dict[str, eVTOL] = {}  # Scenario 全局 EVTOL 管理
+
+        self.vertiport_charge_power = {
+                "0": 20,   #   快充
+                "1": 30,   #   中等
+                #"2": 350,   # kW  中等 
+            }
 
 
         self.evtols = eVTOLBuilder(
@@ -249,9 +256,9 @@ class Scenario(gym.Env):
             logger.info(
                 "[PASSENGER_STATS] "
                 f"pid={pid} "
-                f"to_vertiport={stats['to_vertiport']} "
-                f"wait_uam={stats['wait_uam']} "
-                f"fly={stats['fly']} "
+                f"to_vertiport_time={stats['to_vertiport']} "
+                f"wait_uam_time={stats['wait_uam']} "
+                f"fly_time={stats['fly']} "
                 f"total={sum(stats.values())}"
             )
 
@@ -377,7 +384,7 @@ class Scenario(gym.Env):
                 if ev.current_vertiport_id == vertiport_id
                 and ev.state.name in ["IDLE", "CHARGING"]
             ]
-            capacity = self.vertiports.vertiport_evtol_capacity.get(vertiport_id, 2)
+            capacity = self.vertiports.vertiport_evtol_capacity.get(vertiport_id, 1)
             num_to_spawn = capacity - len(current_evtols)
                 # 🔹 日志：容量检查
             logger.info(
@@ -468,18 +475,13 @@ class Scenario(gym.Env):
         Spawn a new EVTOL with a specific ID and register it globally.
         """
         # 使用 eVTOLBuilder 的接口，传入指定 ID
+       
         evtol = self.evtols.spawn_replacement_evtol(evtol_id=evtol_id, vertiport_id=vertiport_id)
-
-        # 固定型号参数
-        evtol.spec.capacity = 2
-        evtol.spec.max_speed = 200
-        evtol.spec.range_km = 50
-        evtol.spec.charge_rate_kwh_per_min = evtol.spec.battery_capacity_kwh / 25.0 # 充满电需要 25 分钟
-
+         
+    
         # 初始化状态
         evtol.state = evtol.state.CHARGING
-        evtol.remaining_time = random.randint(5, 30)
-        evtol.battery_kwh = evtol.spec.battery_capacity_kwh * random.uniform(0.1, 0.5)
+        evtol.battery_kwh = evtol.spec.battery_capacity_kwh * random.uniform(0.1, 0.3)  # 初始电量 20%-50%
 
         # 注册到全局 EVTOL 列表
         self._all_evtols[evtol.id] = evtol

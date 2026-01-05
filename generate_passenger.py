@@ -11,7 +11,7 @@ import random
 # =========================
 # 配置
 # =========================
-NUM_PASSENGERS = 240       # 生成乘客数量
+NUM_PASSENGERS = 100       # 生成乘客数量
 MAX_SPAWN_TIME = 300       # 最大生成时间（分钟）
 X_RANGE = (5, 10)         # 起点和终点 x 坐标范围
 Y_RANGE = (0, 10)         # 起点和终点 y 坐标范围

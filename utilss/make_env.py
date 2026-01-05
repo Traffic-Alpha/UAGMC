@@ -51,8 +51,8 @@ def make_env(
 
         env = UAMRLWrapper(
             scenario=scenario,
-            candidate_from_vertiports=candidate_from_vertiports,
-            to_vertiport=to_vertiport,
+            candidate_from_vertiports = candidate_from_vertiports,
+            to_vertiport = to_vertiport,
         )
 
         env = Monitor(

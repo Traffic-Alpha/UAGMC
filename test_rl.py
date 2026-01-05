@@ -22,7 +22,7 @@ from utilss.make_env import make_env
 # Path utils
 # =========================
 ROOT = Path(__file__).resolve().parent
-MODEL_DIR = ROOT / "models"
+MODEL_DIR = ROOT / "models_encoder_6_high"
 LOG_DIR = ROOT / "logs"
 
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # 1. Environment config
     # -------------------------
     n_envs = 1
-    max_time = 420
+    max_time = 600
 
     env = DummyVecEnv([
         make_env(
@@ -44,7 +44,7 @@ if __name__ == "__main__":
             env_index=0,
             candidate_from_vertiports=[0, 1],
             to_vertiport=2,
-            person_spawn_file="passengers.csv",  # 与训练保持一致
+            person_spawn_file="train_data/passengers_300.csv",  # 与训练保持一致
             enable_logger = True,
         )
     ])

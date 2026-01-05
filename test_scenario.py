@@ -1,7 +1,7 @@
 import random
 from policy.nearest_vertiport_policy import NearestVertiportPolicy
 from policy.queue_aware_vertiport_policy import QueueAwareVertiportPolicy
-from policy.simple_queue_policy import SimpleQueueVertiportPolicy
+from policy.simple_queue_policy import QueueOnlyVertiportPolicy
 from at_obj.scenario import Scenario
 
 # 不实用 loggur
@@ -39,8 +39,9 @@ def print_vertiport_status(state):
             print(
                 f"        eVTOL {e['id']}: "
                 f"state={e['state']}, "
-                f"battery={e['battery']:.1f}, "
-                f"passengers={e['passenger_count']}, "
+                f"battery_pct={e['battery_pct']:.1f}, "
+                f"passengers={e['passengers']}, "
+                #f"remaining_time={e['remaining_time']},"
                 f"current_vertiport={e['current_vertiport']}"
             )
 
@@ -62,10 +63,10 @@ def test_scenario_env():
     # ========================
     # 1. 初始化环境
     # ========================
-    env = Scenario(max_time=420, person_spawn_file = 'passengers.csv')
+    env = Scenario(max_time=600, person_spawn_file = 'train_data/passengers_200.csv')
     state = env.reset()
     #  策略
-    policy = QueueAwareVertiportPolicy(
+    policy = QueueOnlyVertiportPolicy(
         candidate_from_vertiports=[0, 1],
         to_vertiport=2,
         greedy_prob=1.0,
@@ -87,7 +88,7 @@ def test_scenario_env():
     # ========================
     # 2. 推进仿真
     # ========================
-    for t in range(1, 420): # 最大仿真时间 420 分钟 推进的这个要修改
+    for t in range(1, 600): # 最大仿真时间 420 分钟 推进的这个要修改
         print("\n" + "#" * 60)
         print(f"STEP {t}")
         print("#" * 60)

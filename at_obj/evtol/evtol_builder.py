@@ -2,6 +2,8 @@ import random
 from typing import Dict, List, Any, Optional
 from at_obj.evtol.evtol import eVTOL
 from at_obj.evtol.evtol_spec import eVTOLSpec
+from at_obj.evtol.evtol_registry import EVTOL_SPECS
+from at_obj.vertiport.vertiport_spec import VERTIPORT_CHARGE_RATE
 
 class eVTOLBuilder:
     """
@@ -24,23 +26,27 @@ class eVTOLBuilder:
 
     def _create_evtol(self, evtol_id: str, vertiport_id: Optional[str] = None) -> eVTOL:
         """生成单架 EVTOL"""
+        evtol_type = "JOBY_S4"
+        basespec = EVTOL_SPECS[evtol_type]
+        charge_rate_for_this_vertiport = VERTIPORT_CHARGE_RATE[vertiport_id]
         spec = eVTOLSpec(
             id=evtol_id,
-            model=f"Model-{evtol_id}",
-            manufacturer="UAM Inc.",
-            capacity=random.randint(2, 4),
-            max_speed=random.uniform(100, 150),
-            range_km=random.uniform(50, 100),
-            battery_capacity_kwh=random.uniform(50, 100),
-            min_reserve_ratio=0.1,
-            energy_consumption_kwh_per_km=random.uniform(0.2, 0.5),
-            charge_rate_kwh_per_min=random.uniform(0.5, 1.0)
+            model=basespec.model,
+            manufacturer=basespec.manufacturer,
+            capacity=basespec.capacity,
+            max_speed=basespec.max_speed,
+            range_km=basespec.range_km,
+            battery_capacity_kwh=basespec.battery_capacity_kwh,
+            min_reserve_ratio=basespec.min_reserve_ratio,
+            energy_consumption_kwh_per_km=basespec.energy_consumption_kwh_per_km,
+            charge_rate_kwh_per_min = charge_rate_for_this_vertiport
         )
+
         current_vertiport_id = vertiport_id if vertiport_id is not None else random.choice(self.vertiport_ids)
         return eVTOL(
             id=evtol_id,
             spec=spec,
-            current_vertiport_id=current_vertiport_id
+            current_vertiport_id = current_vertiport_id
         )
 
     def spawn_evtol(self, evtol_id: str, vertiport_id: Optional[str] = None) -> eVTOL:
@@ -77,7 +83,7 @@ class eVTOLBuilder:
                 "current_vertiport": ev.current_vertiport_id,
                 "target_vertiport": ev.target_vertiport_id,
                 "battery_kwh": ev.battery_kwh,
-                "passenger_count": ev.passenger_ids,
+                "passengers": ev.passenger_ids,
                 "remaining_time": ev.remaining_time
             } for ev in self.evtols.values()
         }
