@@ -30,7 +30,7 @@ class UAMRLWrapper(gym.Env):
         self.num_frames = num_frames  # NEW
 
         self.encoder = ObservationEncoder(
-            num_vertiports=len(self.env.vertiports.vertiport_list)
+            num_vertiports=(len(self.env.vertiports.vertiport_list) - 1) # NEW: 排除目标vertiport
         )
 
         self.decoder = ActionDecoder(

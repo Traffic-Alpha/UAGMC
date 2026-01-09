@@ -13,10 +13,10 @@ class ObservationEncoder:
         # passenger: origin(x,y) + destination(x,y)
         self.person_dim = 4
 
-        # per vertiport aggregated features: 
-        # waiting_cnt + incoming_cnt + idle_evtols + charging_evtols + flying_evtols +
-        # total_evtols + avg_onboard + max_onboard + avg_charge_time + avg_flight_time + available_capacity_ratio
-        self.vertiport_dim = 11
+        # per vertiport aggregated features:
+        # waiting_cnt + incoming_cnt + charging_evtols + total_evtols +
+        # total_capacity + avg_charge_time + min_charge_time + avg_flight_time
+        self.vertiport_dim = 8
 
         self.obs_dim = self.person_dim + num_vertiports * self.vertiport_dim
 
@@ -44,83 +44,79 @@ class ObservationEncoder:
         # ======================
         # 2. Vertiport info
         # ======================
-        for _, v in env.vertiports.vertiport_list.items():
-            
-            # 当前在该 vertiport 等待的 passenger
+        for vid, v in env.vertiports.vertiport_list.items():
+            if int(vid) == 2:
+                continue
+
+            # =========================
+            # Passenger side
+            # =========================
             waiting_cnt = len(v.person_list)
 
-            # 正在前往该 vertiport 的 passenger
             incoming_cnt = 0
-            for pid, person in env.persons.persons.items():
-                if person.state == "enroute" and str(person.origin_vertiport_id) == v.id:
+            for person in env.persons.persons.values():
+                if person.state == "enroute" and str(person.origin_vertiport_id) == vid:
                     incoming_cnt += 1
 
-            idle_evtols = 0
-            charging_evtols = 0
-            flying_evtols = 0
+            # =========================
+            # eVTOL side
+            # =========================
+            evtols = env.vertiports.evtols_at_vertiport.get(str(vid), [])
 
-            onboard_list = []
+            charging_evtols = 0
+            total_capacity = 0
+
             remaining_charge_time = []
             remaining_flight_time = []
 
-            max_capacity = 0
-            used_capacity = 0
-
-            for ev in v.evtol_list:
+            for ev in evtols:
                 s = ev.state.name
 
-                # ---- state count ----
-                if s == "IDLE":
-                    idle_evtols += 1
-                elif s == "CHARGING":
+                if s == "CHARGING":
                     charging_evtols += 1
-                elif s == "FLYING":
-                    flying_evtols += 1
 
-                # ---- capacity ----
-                cap = ev.max_passenger
-                cur = ev.current_passenger
-                max_capacity += cap
-                used_capacity += cur
-                onboard_list.append(cur)
+                # ⭐ 最大可用运力（不依赖是否已有乘客）
+                total_capacity += ev.spec.capacity
 
-                # ---- time / energy ----
                 if hasattr(ev, "remaining_charge_time"):
                     remaining_charge_time.append(ev.remaining_charge_time)
 
                 if hasattr(ev, "remaining_flight_time"):
                     remaining_flight_time.append(ev.remaining_flight_time)
 
-            total_evtols = len(v.evtol_list)
+            total_evtols = len(evtols)
 
-            # ---- aggregated stats ----
-            avg_onboard = np.mean(onboard_list) if onboard_list else 0.0
-            max_onboard = np.max(onboard_list) if onboard_list else 0.0
-
+            # =========================
+            # Time statistics
+            # =========================
             avg_charge_time = (
-                np.mean(remaining_charge_time) if remaining_charge_time else 0.0
+                float(np.mean(remaining_charge_time))
+                if remaining_charge_time else 0.0
             )
+
+            # ⭐ 最快可起飞的 eVTOL
+            min_charge_time = (
+                float(np.min(remaining_charge_time))
+                if remaining_charge_time else 0.0
+            )
+
             avg_flight_time = (
-                np.mean(remaining_flight_time) if remaining_flight_time else 0.0
+                float(np.mean(remaining_flight_time))
+                if remaining_flight_time else 0.0
             )
 
-            available_capacity_ratio = (
-                (max_capacity - used_capacity) / max_capacity
-                if max_capacity > 0 else 0.0
-            )
-
+            # =========================
+            # Aggregate
+            # =========================
             obs.extend([
-                float(waiting_cnt),          # 当前在该 vertiport 等待的乘客数
-                float(incoming_cnt),         # 正在前往该 vertiport 的乘客数
-                float(idle_evtols),
-                float(charging_evtols),
-                float(flying_evtols),
-                float(total_evtols),
-                float(avg_onboard),
-                float(max_onboard),
-                float(avg_charge_time),
-                float(avg_flight_time),
-                float(available_capacity_ratio),
+                float(waiting_cnt),        # 等待乘客数
+                float(incoming_cnt),       # 在途乘客数
+                float(charging_evtols),    # 充电中的 eVTOL 数
+                float(total_evtols),       # eVTOL 总数
+                float(total_capacity),     # ⭐ 最大可用运力
+                avg_charge_time,           # 平均充电剩余时间
+                min_charge_time,           # ⭐ 最短充电时间（最快起飞）
+                avg_flight_time,           # 平均剩余飞行时间
             ])
 
         return np.array(obs, dtype=np.float32)

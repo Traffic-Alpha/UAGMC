@@ -52,7 +52,7 @@ class VertiportBuilder:
         # vertiport_ids=list(self.vertiport_evtol_capacity.keys())
         #     )
 
-        self.evtols_at_vertiport: Dict[str, List[eVTOL]] = {}
+        self.evtols_at_vertiport: Dict[str, List[eVTOL]] = {} #要在 vertiport 中维护
 
         # 初始化 vertiport 对象
         self._init_vertiports()

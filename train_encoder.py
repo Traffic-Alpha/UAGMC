@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # -------------------------
     # 5. Training
     # -------------------------
-    total_timesteps = 5000000
+    total_timesteps = 1000000
 
     logger.info("Start training...")
     model.learn(

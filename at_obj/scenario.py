@@ -171,7 +171,7 @@ class Scenario(gym.Env):
         # 1. 推进所有系统状态（不改 passenger）
         # =========================
         self.vehicles.update_objects_state(self.time)
-        self.vertiports.update_objects_state(self.time)
+        self.vertiports.update_objects_state(self.time) #现在是 vertiport 中进行维护
         self.evtols.update_objects_state(self.time)
 
         #处理 eVTOL 起飞

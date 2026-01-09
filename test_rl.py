@@ -22,7 +22,7 @@ from utilss.make_env import make_env
 # Path utils
 # =========================
 ROOT = Path(__file__).resolve().parent
-MODEL_DIR = ROOT / "models_encoder_6_high"
+MODEL_DIR = ROOT / "models"
 LOG_DIR = ROOT / "logs"
 
 
